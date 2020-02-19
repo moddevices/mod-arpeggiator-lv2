@@ -43,8 +43,8 @@ can be used to retrigger the sequence.
 
 To install the plugins do:
 ```
-git clone https://github.com/BramGiesen/arpeggiator_LV2.git
-cd arpeggiator_LV2
+git clone https://github.com/moddevices/mod-arpeggiator-lv2.git
+cd mod-arpeggiator-lv2
 make
 make install
 ```
