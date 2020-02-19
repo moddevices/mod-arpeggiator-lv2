@@ -660,7 +660,7 @@ run(LV2_Handle instance, uint32_t n_samples)
         }
         //set CV gate
         if (self->notes_pressed > 0) {
-            self->cv_gate[i] = 1.0;
+            self->cv_gate[i] = 10.0;
         } else {
             self->cv_gate[i] = 0.0;
         }

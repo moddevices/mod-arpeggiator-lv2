@@ -58,8 +58,10 @@ lv2:port
     lv2:name "MIDI_out" ;
 ],
 [
-    a lv2:OutputPort, lv2:CVPort;
+    a lv2:OutputPort, lv2:CVPort, mod:CVPort;
     lv2:index 2;
+    lv2:minimum 0.0 ;
+    lv2:maximum 10.0 ;
     lv2:symbol "gate";
     lv2:name "Gate";
 ],

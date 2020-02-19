@@ -404,7 +404,7 @@ run(LV2_Handle instance, uint32_t n_samples)
 
         if ((size_t)*self->cv_retrigger != self->prev_cv_retrigger) {
             self->prev_cv_retrigger = (size_t)*self->cv_retrigger;
-            if (*self->cv_retrigger == 1) {
+            if (*self->cv_retrigger >= 1.0) {
                 self->pattern_index = 0;
             }
         }
