@@ -12,14 +12,14 @@
 @prefix urid: <http://lv2plug.in/ns/ext/urid#> .
 @prefix time: <http://lv2plug.in/ns/ext/time#> .
 
-<http://bramgiesen.com/arpeggiator>
+<http://moddevices.com/plugins/mod-devel/midi-pattern>
     a mod:MIDIPlugin ,
     lv2:UtilityPlugin ,
     lv2:Plugin ;
-    doap:name "Arpeggiator" ;
+    doap:name "MIDI Pattern" ;
     doap:license <https://spdx.org/licenses/GPL-2.0-or-later> ;
     rdfs:comment """
-A beat syncable arpeggiator with velocity patterns and octave spread.
+A beat syncable midi-pattern plugin.
 """ ;
     lv2:minorVersion 1 ;
     lv2:microVersion 0 ;
@@ -34,8 +34,8 @@ doap:developer [
     ];
 
 doap:maintainer [
-    foaf:name "Bram Giesen";
-    foaf:homepage <https://bramgiesen.com> ;
+    foaf:name "MOD";
+    foaf:homepage <https://moddevices.com> ;
     foaf:mbox <mailto:bram@moddevices.com> ;
     ];
 
@@ -58,50 +58,27 @@ lv2:port
     lv2:name "MIDI_out" ;
 ],
 [
-    a lv2:OutputPort, lv2:CVPort;
+    a lv2:InputPort, lv2:CVPort;
     lv2:index 2;
-    lv2:symbol "gate";
-    lv2:name "Gate";
+    lv2:symbol "retrigger";
+    lv2:name "Retrigger";
 ],
 [
-    a lv2:InputPort ,lv2:ControlPort ;
+    a lv2:InputPort, lv2:ControlPort;
     lv2:index 3;
-    lv2:symbol "Bpm" ;
-    lv2:name "Bpm";
-    lv2:default 120.0 ;
-    lv2:minimum 20.0 ;
-    lv2:maximum 280.0 ;
-    lv2:portProperty lv2:integer ;
-],
+    lv2:symbol "sync";
+    lv2:name "Sync";
+    lv2:minimum 0;
+    lv2:default 0;
+    lv2:maximum 1;
+    lv2:scalePoint [ rdfs:label "By note"; rdf:value 0 ; ] ;
+    lv2:scalePoint [ rdfs:label "By host clock";    rdf:value 1 ; ] ;
+    lv2:portProperty lv2:enumeration;
+]
+,
 [
     a lv2:InputPort ,lv2:ControlPort ;
     lv2:index 4;
-    lv2:symbol "arpMode" ;
-    lv2:name "ArpMode";
-    lv2:default 0 ;
-    lv2:minimum 0 ;
-    lv2:maximum 5 ;
-    lv2:scalePoint [ rdfs:label "Up";                   rdf:value 0; ] ;
-    lv2:scalePoint [ rdfs:label "Down";                 rdf:value 1; ] ;
-    lv2:scalePoint [ rdfs:label "Up-Down";              rdf:value 2; ] ;
-    lv2:scalePoint [ rdfs:label "Up-Down(alternative)"; rdf:value 3; ] ;
-    lv2:scalePoint [ rdfs:label "Played";               rdf:value 4; ] ;
-    lv2:scalePoint [ rdfs:label "Random";               rdf:value 5; ] ;
-    lv2:portProperty lv2:enumeration;
-],
-[
-    a lv2:InputPort, lv2:ControlPort ;
-    lv2:index 5;
-    lv2:symbol "latchMode" ;
-    lv2:name "LatchMode" ;
-    lv2:default 0.0 ;
-    lv2:minimum 0.0 ;
-    lv2:maximum 1 ;
-    lv2:portProperty lv2:toggled;
-],
-[
-    a lv2:InputPort ,lv2:ControlPort ;
-    lv2:index 6;
     lv2:symbol "Divisions" ;
     lv2:name "Divisions";
     lv2:default 8 ;
@@ -124,83 +101,99 @@ lv2:port
 ]
 ,
 [
-    a lv2:InputPort, lv2:ControlPort;
-    lv2:index 7;
-    lv2:symbol "sync";
-    lv2:name "Sync";
-    lv2:minimum 0;
-    lv2:default 0;
-    lv2:maximum 2;
-    lv2:scalePoint [ rdfs:label "Free Running"; rdf:value 0 ; ] ;
-    lv2:scalePoint [ rdfs:label "Host Sync";    rdf:value 1 ; ] ;
-    lv2:scalePoint [ rdfs:label "Host Sync (Quantized Start)"; rdf:value 2 ; ] ;
-    lv2:portProperty lv2:enumeration;
-]
-,
-[
     a lv2:InputPort, lv2:ControlPort ;
-    lv2:index 8;
-    lv2:symbol "noteLength" ;
-    lv2:name "NoteLength" ;
-    lv2:default 0.75 ;
-    lv2:minimum 0.1  ;
-    lv2:maximum 1.0  ;
-]
-,
-[
-    a lv2:InputPort, lv2:ControlPort ;
-    lv2:index 9;
-    lv2:name "octaveSpread"  ;
-    lv2:symbol "octaveSpread" ;
-    lv2:default 1 ;
+    lv2:index 5;
+    lv2:name "patternlength" ;
+    lv2:symbol "patternlength" ;
+    lv2:default 4 ;
     lv2:minimum 1 ;
-    lv2:maximum 4 ;
+    lv2:maximum 8 ;
     lv2:portProperty lv2:enumeration, lv2:integer;
-    lv2:scalePoint [ rdfs:label "1 Octave" ; rdf:value 1 ] ;
-    lv2:scalePoint [ rdfs:label "2 Octaves" ; rdf:value 2 ] ;
-    lv2:scalePoint [ rdfs:label "3 Octaves" ; rdf:value 3 ] ;
-    lv2:scalePoint [ rdfs:label "4 Octaves" ; rdf:value 4 ] ;
-]
-,
+    lv2:scalePoint [ rdfs:label "1 Note"   ; rdf:value  1 ] ;
+    lv2:scalePoint [ rdfs:label "2 Notes"  ; rdf:value  2 ] ;
+    lv2:scalePoint [ rdfs:label "3 Notes"  ; rdf:value  3 ] ;
+    lv2:scalePoint [ rdfs:label "4 Notes"  ; rdf:value  4 ] ;
+    lv2:scalePoint [ rdfs:label "5 Notes"  ; rdf:value  5 ] ;
+    lv2:scalePoint [ rdfs:label "6 Notes"  ; rdf:value  6 ] ;
+    lv2:scalePoint [ rdfs:label "7 Notes"  ; rdf:value  7 ] ;
+    lv2:scalePoint [ rdfs:label "8 Notes"  ; rdf:value  8 ] ;
+],
 [
     a lv2:InputPort, lv2:ControlPort ;
-    lv2:index 10;
-    lv2:name "octaveMode"  ;
-    lv2:symbol "octaveMode" ;
-    lv2:default 0 ;
-    lv2:minimum 0 ;
-    lv2:maximum 3 ;
-    lv2:portProperty lv2:enumeration, lv2:integer;
-    lv2:scalePoint [ rdfs:label "Up"      ; rdf:value 0 ] ;
-    lv2:scalePoint [ rdfs:label "Down"    ; rdf:value 1 ] ;
-    lv2:scalePoint [ rdfs:label "Up-Down" ; rdf:value 2 ] ;
-    lv2:scalePoint [ rdfs:label "Down-Up" ; rdf:value 3 ] ;
-]
-,
-[
-    a lv2:InputPort, lv2:ControlPort ;
-    lv2:index 11;
-    lv2:symbol "velocity" ;
-    lv2:name "velocity" ;
+    lv2:index 6;
+    lv2:symbol "velocityNote1" ;
+    lv2:name "velocityNote1" ;
     lv2:default 60 ;
     lv2:minimum 0  ;
     lv2:maximum 127;
-]
-,
+],
+[
+    a lv2:InputPort, lv2:ControlPort ;
+    lv2:index 7;
+    lv2:symbol "velocityNote2" ;
+    lv2:name "velocityNote2" ;
+    lv2:default 60 ;
+    lv2:minimum 0  ;
+    lv2:maximum 127;
+],
+[
+    a lv2:InputPort, lv2:ControlPort ;
+    lv2:index 8;
+    lv2:symbol "velocityNote3" ;
+    lv2:name "velocityNote3" ;
+    lv2:default 60 ;
+    lv2:minimum 0  ;
+    lv2:maximum 127;
+],
+[
+    a lv2:InputPort, lv2:ControlPort ;
+    lv2:index 9;
+    lv2:symbol "velocityNote4" ;
+    lv2:name "velocityNote4" ;
+    lv2:default 60 ;
+    lv2:minimum 0  ;
+    lv2:maximum 127;
+],
+[
+    a lv2:InputPort, lv2:ControlPort ;
+    lv2:index 10;
+    lv2:symbol "velocityNote5" ;
+    lv2:name "velocityNote5" ;
+    lv2:default 60 ;
+    lv2:minimum 0  ;
+    lv2:maximum 127;
+],
+[
+    a lv2:InputPort, lv2:ControlPort ;
+    lv2:index 11;
+    lv2:symbol "velocityNote6" ;
+    lv2:name "velocityNote6" ;
+    lv2:default 60 ;
+    lv2:minimum 0  ;
+    lv2:maximum 127;
+],
 [
     a lv2:InputPort, lv2:ControlPort ;
     lv2:index 12;
-    lv2:symbol "TimeOut" ;
-    lv2:name "Time Out" ;
-    lv2:default 480 ;
+    lv2:symbol "velocityNote7" ;
+    lv2:name "velocityNote7" ;
+    lv2:default 60 ;
     lv2:minimum 0  ;
-    lv2:maximum 4800;
-]
-,
+    lv2:maximum 127;
+],
+[
+    a lv2:InputPort, lv2:ControlPort ;
+    lv2:index 13;
+    lv2:symbol "velocityNote8" ;
+    lv2:name "velocityNote8" ;
+    lv2:default 60 ;
+    lv2:minimum 0  ;
+    lv2:maximum 127;
+],
 [
     a lv2:InputPort ,
     lv2:ControlPort ;
-    lv2:index 13;
+    lv2:index 14;
     lv2:symbol "PluginEnabled" ;
     lv2:name "PluginEnabled" ;
     lv2:default 1.0 ;

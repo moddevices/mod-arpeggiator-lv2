@@ -19,7 +19,7 @@
     ((void)((DEBUG) ? fprintf(stderr, __VA_ARGS__) : 0))
 
 #define NUM_VOICES 16
-#define PLUGIN_URI "http://bramgiesen.com/midi-pattern"
+#define PLUGIN_URI "http://moddevices.com/plugins/mod-devel/midi-pattern"
 
 
 // Struct for a 3 byte MIDI event

@@ -19,7 +19,7 @@
     ((void)((DEBUG) ? fprintf(stderr, __VA_ARGS__) : 0))
 
 #define NUM_VOICES 16
-#define PLUGIN_URI "http://bramgiesen.com/arpeggiator"
+#define PLUGIN_URI "http://moddevices.com/plugins/mod-devel/arpeggiator"
 
 
 // Struct for a 3 byte MIDI event
@@ -42,7 +42,6 @@ typedef enum {
     OCTAVESPREAD,
     OCTAVEMODE,
     VELOCITY,
-    TIME_OUT,
     BYPASS
 } PortIndex;
 
@@ -93,8 +92,6 @@ typedef struct {
     int       prev_sync;
     // Variables to keep track of the tempo information sent by the host
     float     bpm; // Beats per minute (tempo)
-    float     host_bpm;
-    float     previous_bpm;
     uint32_t  pos;
     uint32_t  period;
     uint32_t  h_wavelength;
@@ -103,28 +100,20 @@ typedef struct {
     uint32_t  noteoff_buffer[NUM_VOICES][2];
     size_t    active_notes_index;
     int       note_played;
-    int       first_note_timer;
     size_t    active_notes;
     size_t    notes_pressed;
     int       octave_index;
-    int       events_counter;
     bool      triggered;
     bool      octave_up;
     bool      arp_up;
     bool      latch_playing;
     bool      first_note;
-    bool      phase_reset;
-    bool      first;
-    bool      note_on_received;
-    bool      switched_on;
     float     speed; // Transport speed (usually 0=stop, 1=play)
     float     beat_in_measure;
     float     previous_beat_in_measure;
     float     previous_latch;
     float     time_position;
     int       previous_octave_mode;
-    int       bar_length;
-    int       active_notes_bypassed;
 
     float*    cv_gate;
     float*    changeBpm;
@@ -136,8 +125,7 @@ typedef struct {
     float*    octaveSpreadParam;
     float*    octaveModeParam;
     float*    velocity;
-    float*    plugin_enabled;
-    float*    time_out;
+    float*    bypass;
 } Arpeggiator;
 
 
@@ -209,23 +197,20 @@ octaveHandler(Arpeggiator* self)
     }
 
     if (*self->octaveSpreadParam > 1) {
-
-        if (self->octave_index < 0) {
-            self->octave_index += *self->octaveSpreadParam;
-        }
-
-        octave = 12 * (self->octave_index % (int)*self->octaveSpreadParam);
-
         switch (octaveMode)
         {
             case OCTAVE_UP:
+                octave = 12 * self->octave_index;
                 self->octave_index = (self->octave_index + 1) % (int)*self->octaveSpreadParam;
                 break;
             case OCTAVE_DOWN:
+                octave = 12 * self->octave_index;
                 self->octave_index--;
                 self->octave_index = (self->octave_index < 0) ? (int)*self->octaveSpreadParam - 1 : self->octave_index;
                 break;
             case OCTAVE_UP_DOWN:
+                octave = 12 * self->octave_index;
+
                 if (self->octave_up) {
                     self->octave_index++;
                     self->octave_up = (self->octave_index >= (int)*self->octaveSpreadParam - 1) ? false : true;
@@ -235,6 +220,7 @@ octaveHandler(Arpeggiator* self)
                 }
                 break;
             case OCTAVE_DOWN_UP:
+                octave = 12 * self->octave_index;
                 if (!self->octave_up) {
                     self->octave_index--;
                     self->octave_up = (self->octave_index <= 0) ? true : false;
@@ -247,7 +233,6 @@ octaveHandler(Arpeggiator* self)
     } else {
         self->octave_index = 0;
     }
-
 
     return octave;
 }
@@ -273,7 +258,7 @@ createMidiEvent(Arpeggiator* self, uint8_t status, uint8_t note, uint8_t velocit
 
 
 static void
-handle_note_on(Arpeggiator* self, const uint32_t outCapacity)
+handleNoteOn(Arpeggiator* self, const uint32_t outCapacity)
 {
     size_t searched_voices = 0;
     bool   note_found = false;
@@ -292,17 +277,9 @@ handle_note_on(Arpeggiator* self, const uint32_t outCapacity)
             uint8_t midi_note = self->midi_notes[self->note_played] + octave;
             self->previous_midinote = midi_note;
 
-            if (*self->plugin_enabled == 1) {
-                LV2_Atom_MIDI onMsg = createMidiEvent(self, 144, midi_note, velocity);
-                debug_print("midi_note = %i\n", midi_note);
-                debug_print("self->note_played = %i\n", self->note_played);
-                for (unsigned t = 0; t < 3; t++) {
-
-                    debug_print("note array[%i] = %i\n", t, self->midi_notes[t]);
-                }
-                lv2_atom_sequence_append_event(self->MIDI_out, outCapacity, (LV2_Atom_Event*)&onMsg);
-                self->noteoff_buffer[self->active_notes_index][0] = (uint32_t)midi_note;
-            }
+            LV2_Atom_MIDI onMsg = createMidiEvent(self, 144, midi_note, velocity);
+            lv2_atom_sequence_append_event(self->MIDI_out, outCapacity, (LV2_Atom_Event*)&onMsg);
+            self->noteoff_buffer[self->active_notes_index][0] = (uint32_t)midi_note;
             self->active_notes_index = (self->active_notes_index + 1) % NUM_VOICES;
             note_found = true;
         }
@@ -340,7 +317,7 @@ handle_note_on(Arpeggiator* self, const uint32_t outCapacity)
 
 
 static void
-handle_note_off(Arpeggiator* self, const uint32_t outCapacity)
+handleNoteOff(Arpeggiator* self, const uint32_t outCapacity)
 {
     for (size_t i = 0; i < NUM_VOICES; i++) {
         if (self->noteoff_buffer[i][0] > 0) {
@@ -400,11 +377,8 @@ connect_port(LV2_Handle instance,
         case VELOCITY:
             self->velocity = (float*)data;
             break;
-        case TIME_OUT:
-            self->time_out = (float*)data;
-            break;
         case BYPASS:
-            self->plugin_enabled = (float*)data;
+            self->bypass = (float*)data;
             break;
     }
 }
@@ -421,34 +395,6 @@ activate(LV2_Handle instance)
     self->pos = 0;
 }
 
-static void
-clear(Arpeggiator* self)
-{
-    //self->prev_sync   = 0;
-    self->triggered = false;
-    self->octave_up = false;
-    self->arp_up    = true;
-    self->active_notes_index = 0;
-    self->note_played = 0;
-    self->active_notes = 0;
-    self->previous_octave_mode = 0;
-    self->octave_index = 0;
-    self->previous_latch = 0;
-    self->previous_midinote = 0;
-    self->notes_pressed = 0;
-    self->active_notes_bypassed = 0;
-    self->latch_playing = false;
-    self->first_note = false;
-    self->phase_reset = false;
-    self->first = true;
-    self->note_on_received = false;
-    self->switched_on = false;
-    self->bar_length = 4; //TODO make this variable
-
-    for (unsigned i = 0; i < NUM_VOICES; i++) {
-        self->midi_notes[i] = 200;
-    }
-}
 
 
 static LV2_Handle
@@ -499,10 +445,6 @@ instantiate(const LV2_Descriptor*     descriptor,
     uris->time_speed          = map->map(map->handle, LV2_TIME__speed);
 
     debug_print("DEBUGING");
-
-
-    self->first_note_timer = 0;
-    self->bpm = 120.0;
     self->samplerate = rate;
     self->prev_sync   = 0;
     self->beat_in_measure = 0.0;
@@ -518,16 +460,8 @@ instantiate(const LV2_Descriptor*     descriptor,
     self->previous_latch = 0;
     self->previous_midinote = 0;
     self->notes_pressed = 0;
-    self->active_notes_bypassed = 0;
     self->latch_playing = false;
     self->first_note = false;
-    self->phase_reset = false;
-    self->first = true;
-    self->note_on_received = false;
-    self->switched_on = false;
-    self->bar_length = 4; //TODO make this variable
-
-    self->events_counter = 0;
 
     for (unsigned i = 0; i < NUM_VOICES; i++) {
         self->midi_notes[i] = 200;
@@ -559,7 +493,7 @@ update_position(Arpeggiator* self, const LV2_Atom_Object* obj)
     if (bpm && bpm->type == uris->atom_Float)
     {
         // Tempo changed, update BPM
-        self->host_bpm = ((LV2_Atom_Float*)bpm)->body;
+        self->bpm = ((LV2_Atom_Float*)bpm)->body;
     }
     if (speed && speed->type == uris->atom_Float)
     {
@@ -576,7 +510,7 @@ update_position(Arpeggiator* self, const LV2_Atom_Object* obj)
 
 
 static uint32_t
-reset_phase(Arpeggiator* self)
+resetPhase(Arpeggiator* self)
 {
     uint32_t pos = (uint32_t)fmod(self->samplerate * (60.0f / self->bpm) * self->beat_in_measure, (self->samplerate * (60.0f / (self->bpm * (self->divisions / 2.0f)))));
 
@@ -598,17 +532,6 @@ run(LV2_Handle instance, uint32_t n_samples)
     // Write an empty Sequence header to the output
     lv2_atom_sequence_clear(self->MIDI_out);
 
-    if (*self->latch_mode == 0 && self->previous_latch == 1 && self->notes_pressed <= 0) {
-        clear(self);
-        //for (unsigned i = 0; i < NUM_VOICES; i++) {
-        //    self->midi_notes[i] = 200;
-        //    self->note_played = 0;
-        //}
-    }
-    if (*self->latch_mode != self->previous_latch) {
-        self->previous_latch = *self->latch_mode;
-    }
-
     // Read incoming events
     LV2_ATOM_SEQUENCE_FOREACH(self->MIDI_in, ev)
     {
@@ -626,26 +549,19 @@ run(LV2_Handle instance, uint32_t n_samples)
 
             const uint8_t status = msg[0] & 0xF0;
 
-            if (*self->plugin_enabled == 1) {
+            if (*self->bypass == 1) {
 
                 uint8_t midi_note = msg[1];
                 uint8_t note_to_find;
                 size_t find_free_voice;
                 bool voice_found;
 
-                if (midi_note == 0x7b) {
-                    self->active_notes = 0;
-                    for (unsigned i = 0; i < NUM_VOICES; i++) {
-                        self->midi_notes[i] = 200;
-                    }
-                }
-
                 switch (status)
                 {
                     case LV2_MIDI_MSG_NOTE_ON:
                         if (self->notes_pressed == 0) {
                             if (!self->latch_playing) { //TODO check if there needs to be an exception when using sync
-                                if (*self->sync == 0.0) {
+                                if (*self->sync == 0) {
                                     self->pos = 0;
                                 }
                                 self->octave_index = 0;
@@ -659,7 +575,7 @@ run(LV2_Handle instance, uint32_t n_samples)
                                     self->midi_notes[i] = 200;
                                 }
                             }
-                            if (*self->sync == 1.0 && !self->latch_playing) {
+                            if (*self->sync == 1 && !self->latch_playing) {
                                 self->first_note = true;
                             }
                         }
@@ -683,24 +599,11 @@ run(LV2_Handle instance, uint32_t n_samples)
                         }
                         break;
                     case LV2_MIDI_MSG_NOTE_OFF:
-                        //self->notes_pressed--;
-                        debug_print("============================================\n");
-                        search_note = 0;
-                        note_to_find = midi_note;
-                        if (!self->latch_playing) {
-                            self->notes_pressed--;
+                        self->notes_pressed--;
+                        if (!self->latch_playing)
                             self->active_notes = self->notes_pressed;
-                        }
-                        else {
-                            while (search_note < NUM_VOICES)
-                            {
-                                if (self->midi_notes[search_note] == note_to_find) {
-                                    search_note = NUM_VOICES;
-                                    self->notes_pressed--;
-                                }
-                                search_note++;
-                            }
-                        }
+                        note_to_find = midi_note;
+                        search_note = 0;
                         if (*self->latch_mode == 0) {
                             self->latch_playing = false;
                             while (search_note < NUM_VOICES)
@@ -721,70 +624,39 @@ run(LV2_Handle instance, uint32_t n_samples)
                 }
             }
             else {
-
-                if (*self->latch_mode == 0) {
-                    for (unsigned clear_notes = 0; clear_notes < NUM_VOICES; clear_notes++)
-                        self->midi_notes[clear_notes] = 200;
-                }
-                if (!self->switched_on) {
-                    self->active_notes_bypassed = self->active_notes;
-                    self->switched_on = true;
-                }
-
-                switch (status)
-                {
-                    case LV2_MIDI_MSG_NOTE_ON:
-                        self->note_on_received = true;
-                        self->active_notes_bypassed++;
-                        break;
-                    case LV2_MIDI_MSG_NOTE_OFF:
-                        if (self->note_on_received) {
-                            self->active_notes_bypassed--;
-                        }
-                        break;
-                    default:
-                        break;
-                }
                 //send MIDI message through
                 lv2_atom_sequence_append_event(self->MIDI_out, out_capacity, ev);
-                self->first = true;
 
             }
         }
     }
+
+    if (*self->latch_mode == 0 && self->previous_latch == 1 && self->notes_pressed <= 0) {
+        for (unsigned i = 0; i < NUM_VOICES; i++) {
+            self->midi_notes[i] = 200;
+            self->note_played = 0;
+        }
+    }
+    if (*self->latch_mode != self->previous_latch) {
+        self->previous_latch = *self->latch_mode;
+    }
+
     for(uint32_t i = 0; i < n_samples; i ++) {
         //map bpm to host or to bpm parameter
-        if (*self->sync == 0.0) {
+        if (*self->sync == 0) {
             self->bpm = *self->changeBpm;
         } else {
-            self->bpm = self->host_bpm;
-        }
-
-        if  (*self->sync > 0.0) {
-            if (self->beat_in_measure < 0.5 && !self->phase_reset) {
-                self->pos = reset_phase(self);
-                self->phase_reset = true;
-            } else if (self->beat_in_measure >= 1.0 && self->phase_reset && self->bar_length > 1.0) {
-                self->phase_reset = false;
-            } else if (self->beat_in_measure > 0.9 && self->phase_reset && self->bar_length == 0.0) {
-                self->phase_reset = false;
-            }
-        }
-
-        //resync phase when tempo is changed
-        if (self->bpm != self->previous_bpm && *self->sync > 0.0) {
-            self->pos = reset_phase(self);
-            self->previous_bpm = self->bpm;
+            self->bpm = self->bpm;
         }
         //reset phase when sync is turned on
         if (*self->sync != self->prev_sync) {
-            self->pos = reset_phase(self);
+            self->pos = resetPhase(self);
             self->prev_sync = *self->sync;
         }
         //reset phase when there is a new division
         if (self->divisions != *self->changedDiv) {
             self->divisions = *self->changedDiv;
-            self->pos = reset_phase(self);
+            self->pos = resetPhase(self);
         }
         //set CV gate
         if (self->notes_pressed > 0) {
@@ -799,40 +671,18 @@ run(LV2_Handle instance, uint32_t n_samples)
         if(self->pos >= self->period && i < n_samples) {
             self->pos = 0;
         } else {
-            if (self->first_note) {
-                self->first_note_timer++;
-            }
-            if(((self->pos < self->h_wavelength && !self->triggered) && !self->first_note) || (self->first_note_timer > (int)*self->time_out)) {
-
-                
-                debug_print("note off time = %i\n", self->first_note_timer);
-                //debug_print("self->events_coutner = %i\n", self->events_counter);
-                //debug_print("self->pos %i\n", self->pos);
-                self->events_counter = 0;
-
-                if (self->first && *self->plugin_enabled == 1.0) { //clear all notes before begining off sequence
-                    for (uint8_t note_off = 0; note_off < 127; note_off++) {
-                        LV2_Atom_MIDI offMsg = createMidiEvent(self, 128, note_off, 0);
-                        lv2_atom_sequence_append_event(self->MIDI_out, out_capacity, (LV2_Atom_Event*)&offMsg);
-                    }
-                    self->first = false;
-                }
-
+            if((self->pos < self->h_wavelength && !self->triggered) || self->first_note) {
                 //trigger MIDI message
-                handle_note_on(self, out_capacity);
-
+                handleNoteOn(self, out_capacity);
                 self->triggered = true;
                 self->first_note = false;
-                self->first_note_timer = 0;
-            } else if (self->pos > self->h_wavelength && self->triggered) {
+            } else if (self->pos > self->h_wavelength) {
                 //set gate
                 self->triggered = false;
-                reset_phase(self);
             }
         }
-        handle_note_off(self, out_capacity);
+        handleNoteOff(self, out_capacity);
         self->pos += 1;
-        self->events_counter++;
     }
     self->previous_beat_in_measure = current_beat_pos;
 }
