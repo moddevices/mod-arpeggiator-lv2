@@ -12,7 +12,7 @@
 @prefix urid: <http://lv2plug.in/ns/ext/urid#> .
 @prefix time: <http://lv2plug.in/ns/ext/time#> .
 
-<http://bramgiesen.com/midi-pattern>
+<http://moddevices.com/plugins/mod-devel/midi-pattern>
     a mod:MIDIPlugin ,
     lv2:UtilityPlugin ,
     lv2:Plugin ;
@@ -34,8 +34,8 @@ doap:developer [
     ];
 
 doap:maintainer [
-    foaf:name "Bram Giesen";
-    foaf:homepage <https://bramgiesen.com> ;
+    foaf:name "MOD";
+    foaf:homepage <https://moddevices.com> ;
     foaf:mbox <mailto:bram@moddevices.com> ;
     ];
 
@@ -58,8 +58,10 @@ lv2:port
     lv2:name "MIDI_out" ;
 ],
 [
-    a lv2:InputPort, lv2:CVPort;
+    a lv2:InputPort, lv2:CVPort, mod:CVPort;
     lv2:index 2;
+    lv2:minimum 0.0 ;
+    lv2:maximum 10.0 ;
     lv2:symbol "retrigger";
     lv2:name "Retrigger";
 ],
@@ -189,5 +191,17 @@ lv2:port
     lv2:default 60 ;
     lv2:minimum 0  ;
     lv2:maximum 127;
+],
+[
+    a lv2:InputPort ,
+    lv2:ControlPort ;
+    lv2:index 14;
+    lv2:symbol "PluginEnabled" ;
+    lv2:name "PluginEnabled" ;
+    lv2:default 1.0 ;
+    lv2:minimum 0.0 ;
+    lv2:maximum 1.0 ;
+    lv2:designation lv2:enabled;
+    lv2:portProperty lv2:toggled;
 ]
 .

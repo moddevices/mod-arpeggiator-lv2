@@ -19,7 +19,7 @@
     ((void)((DEBUG) ? fprintf(stderr, __VA_ARGS__) : 0))
 
 #define NUM_VOICES 16
-#define PLUGIN_URI "http://bramgiesen.com/arpeggiator"
+#define PLUGIN_URI "http://moddevices.com/plugins/mod-devel/arpeggiator"
 
 
 // Struct for a 3 byte MIDI event
@@ -660,7 +660,7 @@ run(LV2_Handle instance, uint32_t n_samples)
         }
         //set CV gate
         if (self->notes_pressed > 0) {
-            self->cv_gate[i] = 1.0;
+            self->cv_gate[i] = 10.0;
         } else {
             self->cv_gate[i] = 0.0;
         }

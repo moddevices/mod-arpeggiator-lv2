@@ -19,7 +19,7 @@
     ((void)((DEBUG) ? fprintf(stderr, __VA_ARGS__) : 0))
 
 #define NUM_VOICES 16
-#define PLUGIN_URI "http://bramgiesen.com/midi-pattern"
+#define PLUGIN_URI "http://moddevices.com/plugins/mod-devel/midi-pattern"
 
 
 // Struct for a 3 byte MIDI event
@@ -43,7 +43,8 @@ typedef enum {
     PATTERNVEL5            = 10,
     PATTERNVEL6            = 11,
     PATTERNVEL7            = 12,
-    PATTERNVEL8            = 13
+    PATTERNVEL8            = 13,
+    PLUGIN_ENABLED         = 14
 } PortIndex;
 
 
@@ -79,6 +80,7 @@ typedef struct {
 
     // Variables to keep track of the tempo information sent by the host
     float     bpm; // Beats per minute (tempo)
+    float     previous_bpm;
     uint32_t  pos;
     uint32_t  period;
     uint32_t  h_wavelength;
@@ -112,6 +114,7 @@ typedef struct {
     float*    pattern_vel6_param;
     float*    pattern_vel7_param;
     float*    pattern_vel8_param;
+    float*    plugin_enabled;
 } MidiPattern;
 
 
@@ -183,6 +186,9 @@ connect_port(LV2_Handle instance,
             break;
         case PATTERNVEL8:
             self->pattern_vel8_param = (float*)data;
+            break;
+        case PLUGIN_ENABLED:
+            self->plugin_enabled = (float*)data;
             break;
     }
 }
@@ -256,6 +262,7 @@ instantiate(const LV2_Descriptor*     descriptor,
     self->pattern_index = 0;
     self->current_velocity = 0;
     self->pos = 0;
+    self->previous_bpm = 120.0;
 
     self->velocity_pattern[0]  = &self->pattern_vel1_param;
     self->velocity_pattern[1]  = &self->pattern_vel2_param;
@@ -309,7 +316,7 @@ update_position(MidiPattern* self, const LV2_Atom_Object* obj)
 
 
 static uint32_t
-resetPhase(MidiPattern* self)
+reset_phase(MidiPattern* self)
 {
     uint32_t pos = (uint32_t)fmod(self->samplerate * (60.0f / self->bpm) * self->beat_in_measure, (self->samplerate * (60.0f / (self->bpm * (self->divisions / 2.0f)))));
 
@@ -353,7 +360,13 @@ run(LV2_Handle instance, uint32_t n_samples)
             switch (status)
             {
                 case LV2_MIDI_MSG_NOTE_ON:
-                    velocity = self->current_velocity;
+
+                    if (*self->plugin_enabled == 1)
+                        velocity = self->current_velocity;
+                    else
+                        velocity = msg[2];
+
+                    debug_print("message[2] = %i\n", msg[2]);
                     if (*self->sync == 0) {
                         self->pattern_index = (self->pattern_index + 1) % (uint8_t)*self->velocity_pattern_length_param;
                     }
@@ -370,23 +383,28 @@ run(LV2_Handle instance, uint32_t n_samples)
     for(uint32_t i = 0; i < n_samples; i ++) {
         //reset phase when playing starts or stops
         if (self->speed != self->prev_speed) {
-            self->pos = resetPhase(self);
+            self->pos = reset_phase(self);
             self->prev_speed = self->speed;
+        }
+        //resync phase when tempo is changed
+        if (self->bpm != self->previous_bpm && *self->sync > 0) {
+            self->pos = reset_phase(self);
+            self->previous_bpm = self->bpm;
         }
         //reset phase when sync is turned on
         if (*self->sync != self->prevSync) {
-            self->pos = resetPhase(self);
+            self->pos = reset_phase(self);
             self->prevSync = *self->sync;
         }
         //reset phase when there is a new division
         if (self->divisions != *self->changed_div) {
             self->divisions = *self->changed_div;
-            self->pos = resetPhase(self);
+            self->pos = reset_phase(self);
         }
 
         if ((size_t)*self->cv_retrigger != self->prev_cv_retrigger) {
             self->prev_cv_retrigger = (size_t)*self->cv_retrigger;
-            if (*self->cv_retrigger == 1) {
+            if (*self->cv_retrigger >= 1.0) {
                 self->pattern_index = 0;
             }
         }
@@ -402,8 +420,9 @@ run(LV2_Handle instance, uint32_t n_samples)
             if((self->pos < self->h_wavelength && !self->triggered)) {
                 self->pattern_index = (self->pattern_index + 1) % (uint8_t)*self->velocity_pattern_length_param;
                 self->triggered = true;
-            } else if (self->pos > self->h_wavelength) {
+            } else if (self->pos > self->h_wavelength && self->triggered) {
                 //set gate
+                reset_phase(self);
                 self->triggered = false;
             }
         }

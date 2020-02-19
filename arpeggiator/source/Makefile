@@ -4,7 +4,7 @@
 
 include Makefile.mk
 
-NAME = bg-arpeggiator
+NAME = mod-arpeggiator
 
 # --------------------------------------------------------------
 # Installation path

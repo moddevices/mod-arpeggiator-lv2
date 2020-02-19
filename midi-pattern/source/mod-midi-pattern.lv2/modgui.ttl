@@ -1,14 +1,14 @@
 @prefix modgui: <http://moddevices.com/ns/modgui#> .
 @prefix lv2:    <http://lv2plug.in/ns/lv2core#> .
 
-<http://bramgiesen.com/midi-pattern>
+<http://moddevices.com/plugins/mod-devel/midi-pattern>
     modgui:gui [
         modgui:resourcesDirectory <modgui> ;
         modgui:iconTemplate <modgui/icon-arp.html> ;
         modgui:stylesheet <modgui/stylesheet-arp.css> ;
         modgui:screenshot <modgui/midi-pattern_ss.png> ;
         modgui:thumbnail <modgui/midi-pattern_tn.png> ;
-        modgui:brand "BG" ;
+        modgui:brand "MOD" ;
         modgui:label "MIDI Pattern" ;
         modgui:model "boxy" ;
         modgui:panel "8-sliders" ;

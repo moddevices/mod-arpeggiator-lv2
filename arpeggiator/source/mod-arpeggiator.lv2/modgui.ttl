@@ -1,14 +1,14 @@
 @prefix modgui: <http://moddevices.com/ns/modgui#> .
 @prefix lv2:    <http://lv2plug.in/ns/lv2core#> .
 
-<http://bramgiesen.com/arpeggiator>
+<http://moddevices.com/plugins/mod-devel/arpeggiator>
     modgui:gui [
         modgui:resourcesDirectory <modgui> ;
         modgui:iconTemplate <modgui/icon-arpeggiator.html> ;
         modgui:stylesheet <modgui/stylesheet-arpeggiator.css> ;
         modgui:screenshot <modgui/arpeggiator_ss.png> ;
         modgui:thumbnail <modgui/arpeggiator_tn.png> ;
-        modgui:brand "BG" ;
+        modgui:brand "MOD" ;
         modgui:label "Arpeggiator" ;
         modgui:model "boxy" ;
         modgui:panel "1-select-4-knobs" ;
