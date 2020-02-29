@@ -58,7 +58,8 @@ typedef enum {
     OCTAVE_UP = 0,
     OCTAVE_DOWN,
     OCTAVE_UP_DOWN,
-    OCTAVE_DOWN_UP
+    OCTAVE_DOWN_UP,
+    OCTAVE_CYCLE
 } OctaveEnum;
 
 
@@ -192,6 +193,9 @@ octaveHandler(Arpeggiator* self)
                 self->octave_index = (int)*self->octaveSpreadParam;
                 self->octave_up = !self->octave_up;
                 break;
+            case OCTAVE_CYCLE:
+                self->octave_index = self->note_played % (int)*self->octaveSpreadParam;
+                break;
         }
         self->previous_octave_mode = octaveMode;
     }
@@ -227,6 +231,12 @@ octaveHandler(Arpeggiator* self)
                 } else {
                     self->octave_index = (self->octave_index + 1) % (int)*self->octaveSpreadParam;
                     self->octave_up = (self->octave_index >= (int)*self->octaveSpreadParam - 1) ? false : true;
+                }
+                break;
+            case OCTAVE_CYCLE:
+                    octave = 12 * self->octave_index;
+                if (self->note_played == 0) {
+                    self->octave_index = (self->octave_index + 1) % (int)*self->octaveSpreadParam;
                 }
                 break;
         }
