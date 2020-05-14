@@ -109,20 +109,20 @@ lv2:port
     lv2:default 8 ;
     lv2:minimum 0.5 ;
     lv2:maximum 16 ;
-    lv2:scalePoint [ rdfs:label "Whole Note";   rdf:value 0.5 ; ] ;
-    lv2:scalePoint [ rdfs:label "Half Note";    rdf:value 1 ; ] ;
-    lv2:scalePoint [ rdfs:label "third Note";   rdf:value 1.5; ] ;
-    lv2:scalePoint [ rdfs:label "Quarter";      rdf:value 2 ; ] ;
-    lv2:scalePoint [ rdfs:label "Dotted 4th";   rdf:value 2.66666 ; ] ;
-    lv2:scalePoint [ rdfs:label "Triplet 4th";  rdf:value 3; ] ;
-    lv2:scalePoint [ rdfs:label "8th";          rdf:value 4 ; ] ;
-    lv2:scalePoint [ rdfs:label "Dotted 8th";   rdf:value 5.33333; ] ;
-    lv2:scalePoint [ rdfs:label "Triplet 8th";  rdf:value 6; ] ;
-    lv2:scalePoint [ rdfs:label "16th";         rdf:value 8 ; ] ;
-    lv2:scalePoint [ rdfs:label "Dotted 16th";  rdf:value 10.66666; ] ;
-    lv2:scalePoint [ rdfs:label "Triplet 16th"; rdf:value 12; ] ;
-    lv2:scalePoint [ rdfs:label "32th";         rdf:value 16 ; ] ;
-    lv2:portProperty lv2:enumeration;
+    lv2:scalePoint [ rdfs:label "1/1"  ; rdf:value 0.5 ; ] ;
+    lv2:scalePoint [ rdfs:label "1/2"  ; rdf:value 1 ; ] ;
+    lv2:scalePoint [ rdfs:label "1/3"  ; rdf:value 1.5; ] ;
+    lv2:scalePoint [ rdfs:label "1/4"  ; rdf:value 2 ; ] ;
+    lv2:scalePoint [ rdfs:label "1/4." ; rdf:value 2.66666 ; ] ;
+    lv2:scalePoint [ rdfs:label "1/4T" ; rdf:value 3; ] ;
+    lv2:scalePoint [ rdfs:label "1/8"  ; rdf:value 4 ; ] ;
+    lv2:scalePoint [ rdfs:label "1/8." ; rdf:value 5.33333; ] ;
+    lv2:scalePoint [ rdfs:label "1/8T" ; rdf:value 6; ] ;
+    lv2:scalePoint [ rdfs:label "1/16" ; rdf:value 8 ; ] ;
+    lv2:scalePoint [ rdfs:label "1/16."; rdf:value 10.66666; ] ;
+    lv2:scalePoint [ rdfs:label "1/16T"; rdf:value 12; ] ;
+    lv2:scalePoint [ rdfs:label "1/32" ; rdf:value 16 ; ] ;
+    lv2:portProperty lv2:enumeration   ;
 ]
 ,
 [
