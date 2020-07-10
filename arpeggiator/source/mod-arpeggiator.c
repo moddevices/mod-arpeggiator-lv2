@@ -25,6 +25,10 @@
 #define MIDI_NOTEOFF 0x80
 #define MIDI_NOTEON  0x90
 
+#define MIDI_NOTE 0
+#define MIDI_CHANNEL 1
+#define TIMER 2
+
 
 // Struct for a 3 byte MIDI event
 typedef struct {
@@ -106,7 +110,7 @@ typedef struct {
     uint8_t   midi_notes[NUM_VOICES][2];
     uint8_t   previous_midinote;
 	uint8_t   channel;
-    uint32_t  noteoff_buffer[NUM_VOICES][2];
+    uint32_t  noteoff_buffer[NUM_VOICES][3];
     size_t    active_notes_index;
     int       note_played;
     int       first_note_timer;
@@ -296,20 +300,22 @@ handle_note_on(Arpeggiator* self, const uint32_t outCapacity)
 	{
 		self->note_played = (self->note_played < 0) ? 0 : self->note_played;
 
-		if (self->midi_notes[self->note_played] > 0
-				&& self->midi_notes[self->note_played][0] < 128)
+		if (self->midi_notes[self->note_played][MIDI_NOTE] > 0
+				&& self->midi_notes[self->note_played][MIDI_NOTE] < 128)
 		{
 			uint8_t octave = octaveHandler(self);
 			uint8_t velocity = (uint8_t)*self->velocity;
 
 			//create MIDI note on message
-			uint8_t midi_note = self->midi_notes[self->note_played][0] + octave;
+			uint8_t midi_note = self->midi_notes[self->note_played][MIDI_NOTE] + octave;
+			uint8_t channel = self->midi_notes[self->note_played][MIDI_CHANNEL];
 			self->previous_midinote = midi_note;
 
 			if (*self->plugin_enabled == 1) {
-				LV2_Atom_MIDI onMsg = createMidiEvent(self, MIDI_NOTEON | self->channel, midi_note, velocity);
+				LV2_Atom_MIDI onMsg = createMidiEvent(self, MIDI_NOTEON | channel, midi_note, velocity);
 				lv2_atom_sequence_append_event(self->MIDI_out, outCapacity, (LV2_Atom_Event*)&onMsg);
-				self->noteoff_buffer[self->active_notes_index][0] = (uint32_t)midi_note;
+				self->noteoff_buffer[self->active_notes_index][MIDI_NOTE] = (uint32_t)midi_note;
+				self->noteoff_buffer[self->active_notes_index][MIDI_CHANNEL] = (uint32_t)channel;
 			}
 			self->active_notes_index = (self->active_notes_index + 1) % NUM_VOICES;
 			note_found = true;
@@ -351,13 +357,14 @@ static void
 handle_note_off(Arpeggiator* self, const uint32_t outCapacity)
 {
 	for (size_t i = 0; i < NUM_VOICES; i++) {
-		if (self->noteoff_buffer[i][0] > 0) {
-			self->noteoff_buffer[i][1] += 1;
-			if (self->noteoff_buffer[i][1] > (uint32_t)(self->period * *self->note_length)) {
-				LV2_Atom_MIDI offMsg = createMidiEvent(self, MIDI_NOTEOFF | self->channel, (uint8_t)self->noteoff_buffer[i][0], 0);
+		if (self->noteoff_buffer[i][MIDI_NOTE] > 0) { //TODO check for other number than zero
+			self->noteoff_buffer[i][TIMER] += 1;
+			if (self->noteoff_buffer[i][TIMER] > (uint32_t)(self->period * *self->note_length)) {
+				LV2_Atom_MIDI offMsg = createMidiEvent(self, MIDI_NOTEOFF | (uint8_t)self->noteoff_buffer[i][MIDI_CHANNEL], (uint8_t)self->noteoff_buffer[i][MIDI_NOTE], 0);
 				lv2_atom_sequence_append_event(self->MIDI_out, outCapacity, (LV2_Atom_Event*)&offMsg);
-				self->noteoff_buffer[i][0] = 0;
-				self->noteoff_buffer[i][1] = 0;
+				self->noteoff_buffer[i][MIDI_NOTE] = 0;
+				self->noteoff_buffer[i][MIDI_CHANNEL] = 0;
+				self->noteoff_buffer[i][TIMER] = 0;
 			}
 		}
 	}
@@ -454,7 +461,8 @@ clear(Arpeggiator* self)
 	self->bar_length = 4; //TODO make this variable
 
 	for (unsigned i = 0; i < NUM_VOICES; i++) {
-		self->midi_notes[i] = 200;
+		self->midi_notes[i][MIDI_NOTE] = 200;
+		self->midi_notes[i][MIDI_CHANNEL] = 0;
 	}
 }
 
@@ -542,7 +550,7 @@ instantiate(const LV2_Descriptor*     descriptor,
 		self->midi_notes[i][1] = 0;
 	}
 	for (unsigned i = 0; i < NUM_VOICES; i++) {
-		for (unsigned x = 0; x < 2; x++) {
+		for (unsigned x = 0; x < 3; x++) {
 			self->noteoff_buffer[i][x] = 0;
 		}
 	}
@@ -664,8 +672,8 @@ run(LV2_Handle instance, uint32_t n_samples)
 								self->latch_playing = true;
 								self->active_notes = 0;
 								for (unsigned i = 0; i < NUM_VOICES; i++) {
-									self->midi_notes[i][0] = 200;
-									self->midi_notes[i][1] = 0;
+									self->midi_notes[i][MIDI_NOTE] = 200;
+									self->midi_notes[i][MIDI_CHANNEL] = 0;
 								}
 							}
 							if (*self->sync == 1.0 && !self->latch_playing) {
@@ -678,16 +686,16 @@ run(LV2_Handle instance, uint32_t n_samples)
 						voice_found = false;
 						while (find_free_voice < NUM_VOICES && !voice_found)
 						{
-							if (self->midi_notes[find_free_voice][0] == 200) {
-								self->midi_notes[find_free_voice][0] = midi_note;
-								self->midi_notes[find_free_voice][1] = channel;
+							if (self->midi_notes[find_free_voice][MIDI_NOTE] == 200) {
+								self->midi_notes[find_free_voice][MIDI_NOTE] = midi_note;
+								self->midi_notes[find_free_voice][MIDI_CHANNEL] = channel;
 								voice_found = true;
 							}
 							find_free_voice++;
 						}
 						if ((ArpEnum)*self->arp_mode != ARP_PLAYED)
 							quicksort(self->midi_notes, 0, NUM_VOICES - 1);
-						if (midi_note < self->midi_notes[self->note_played - 1][0] &&
+						if (midi_note < self->midi_notes[self->note_played - 1][MIDI_NOTE] &&
 								self->note_played > 0) {
 							self->note_played++;
 						}
@@ -702,7 +710,7 @@ run(LV2_Handle instance, uint32_t n_samples)
 						else {
 							while (search_note < NUM_VOICES)
 							{
-								if (self->midi_notes[search_note][0] == note_to_find) {
+								if (self->midi_notes[search_note][MIDI_NOTE] == note_to_find) {
 									search_note = NUM_VOICES;
 									self->notes_pressed--;
 								}
@@ -713,10 +721,10 @@ run(LV2_Handle instance, uint32_t n_samples)
 							self->latch_playing = false;
 							while (search_note < NUM_VOICES)
 							{
-								if (self->midi_notes[search_note][0] == note_to_find)
+								if (self->midi_notes[search_note][MIDI_NOTE] == note_to_find)
 								{
-									self->midi_notes[search_note][0] = 200;
-									self->midi_notes[search_note][0] = 0;
+									self->midi_notes[search_note][MIDI_NOTE] = 200;
+									self->midi_notes[search_note][MIDI_CHANNEL] = 0;
 									search_note = NUM_VOICES;
 								}
 								search_note++;
@@ -732,8 +740,10 @@ run(LV2_Handle instance, uint32_t n_samples)
 			else {
 
 				if (*self->latch_mode == 0) {
-					for (unsigned clear_notes = 0; clear_notes < NUM_VOICES; clear_notes++)
-						self->midi_notes[clear_notes][0] = 200;
+					for (unsigned clear_notes = 0; clear_notes < NUM_VOICES; clear_notes++) {
+						self->midi_notes[clear_notes][MIDI_NOTE] = 200;
+						self->midi_notes[clear_notes][MIDI_CHANNEL] = 0;
+					}
 				}
 				if (!self->switched_on) {
 					self->active_notes_bypassed = self->active_notes;
@@ -815,9 +825,9 @@ run(LV2_Handle instance, uint32_t n_samples)
 
 				self->events_counter = 0;
 
-				if (self->first && *self->plugin_enabled == 1.0) { //clear all notes before begining off sequence
+				if (self->first && *self->plugin_enabled == 1.0) { //clear all notes before begining off sequence //TODO addopt this for all channels
 					for (uint8_t note_off = 0; note_off < 127; note_off++) {
-						LV2_Atom_MIDI offMsg = createMidiEvent(self, MIDI_NOTEOFF | self->channel, note_off, 0);
+						LV2_Atom_MIDI offMsg = createMidiEvent(self, MIDI_NOTEOFF, note_off, 0);
 						lv2_atom_sequence_append_event(self->MIDI_out, out_capacity, (LV2_Atom_Event*)&offMsg);
 					}
 					self->first = false;
