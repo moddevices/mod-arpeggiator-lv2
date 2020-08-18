@@ -36,7 +36,6 @@ typedef struct {
     uint8_t        msg[3];
 } LV2_Atom_MIDI;
 
-
 typedef enum {
     MIDI_IN = 0,
     MIDI_OUT,
@@ -309,7 +308,6 @@ handle_note_on(Arpeggiator* self, const uint32_t outCapacity)
 			//create MIDI note on message
 			uint8_t midi_note = self->midi_notes[self->note_played][MIDI_NOTE] + octave;
 			uint8_t channel = self->midi_notes[self->note_played][MIDI_CHANNEL];
-			self->previous_midinote = midi_note;
 
 			if (*self->plugin_enabled == 1) {
 				LV2_Atom_MIDI onMsg = createMidiEvent(self, MIDI_NOTEON | channel, midi_note, velocity);
@@ -449,7 +447,6 @@ clear(Arpeggiator* self)
 	self->previous_octave_mode = 0;
 	self->octave_index = 0;
 	self->previous_latch = 0;
-	self->previous_midinote = 0;
 	self->notes_pressed = 0;
 	self->active_notes_bypassed = 0;
 	self->latch_playing = false;
@@ -532,7 +529,6 @@ instantiate(const LV2_Descriptor*     descriptor,
 	self->previous_octave_mode = 0;
 	self->octave_index = 0;
 	self->previous_latch = 0;
-	self->previous_midinote = 0;
 	self->notes_pressed = 0;
 	self->active_notes_bypassed = 0;
 	self->latch_playing = false;
@@ -804,6 +800,7 @@ run(LV2_Handle instance, uint32_t n_samples)
 		if (self->divisions != *self->changedDiv) {
 			self->divisions = *self->changedDiv;
 			self->pos = reset_phase(self);
+			debug_print("Pos after division change = %i\n", self->pos);
 		}
 		//set CV gate
 		if (self->notes_pressed > 0) {
