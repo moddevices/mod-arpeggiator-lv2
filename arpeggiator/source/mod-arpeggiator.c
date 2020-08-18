@@ -768,6 +768,9 @@ run(LV2_Handle instance, uint32_t n_samples)
 		}
 	}
 	for(uint32_t i = 0; i < n_samples; i ++) {
+
+		debug_print("beatInMeasure = %f\n", self->beat_in_measure);
+
 		//map bpm to host or to bpm parameter
 		if (*self->sync == 0.0) {
 			self->bpm = *self->changeBpm;
