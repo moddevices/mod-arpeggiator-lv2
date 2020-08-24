@@ -1,0 +1,264 @@
+@font-face {
+    font-family: 'lets_go_digital';
+    src: url('/resources/font/lets_go_digital_regular-webfont.woff2{{{ns}}}') format('woff2'),
+         url('/resources/font/lets_go_digital_regular-webfont.woff{{{ns}}}') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+.arpeggiator{{{cns}}} {
+    background-image: url(/resources/mod_arpeggiator_bg.png{{{ns}}});
+    background-position:center center;
+    background-repeat:no-repeat;
+    background-size:419px 444px;
+    height:444px;
+    position:absolute;
+    width:415px;
+}
+
+/* All values */
+.arpeggiator{{{cns}}} .value {
+    font-family: 'lets_go_digital' !important;
+    font-variant-numeric: tabular-nums !important;
+    color: RGB(212, 42, 42);
+    font-size: 22px;
+    font-weight: bold;
+    text-align: center;
+    width: 60px;
+    height: 25px;
+    padding-top: 3px;
+}
+
+.arpeggiator{{{cns}}} .mod-enumerated-selected {
+    font-family: 'lets_go_digital' !important;
+    font-size: 14px;
+    margin-top: -1px;
+}
+
+.arpeggiator{{{cns}}} .mod-enumerated-list div {
+    font-family: 'lets_go_digital' !important;
+    font-size: 14px;
+}
+
+/* MIDI Output */
+.arpeggiator{{{cns}}} .mod-midi-output {
+    top: 75px;
+}
+
+/* = LIGHT ON/OFF
+================================================ */
+.arpeggiator{{{cns}}} .mod-light {
+    background-position:center center;
+    background-repeat:no-repeat;
+    height:32px;
+    left:10px;
+    position:absolute;
+    right:10px;
+    top:380px;
+}
+
+/* = FOOTSWITCH
+================================================ */
+.arpeggiator{{{cns}}} .mod-footswitch {
+    background-image: url(/resources/sprite_sheets/switch_toggle.png{{{ns}}});
+    background-position:right center;
+    background-repeat:no-repeat;
+    cursor:pointer;
+    height:40px;
+    width: 33px;
+    position:absolute !important;
+    top: 376px;
+    left: 324px;
+}
+
+.arpeggiator{{{cns}}} .mod-footswitch.on {
+    background-position: left center;
+    margin-top: 5px;
+}
+
+/* = KNOBS
+================================================ */
+.arpeggiator{{{cns}}} .mod-control-group {
+    position:relative;
+    z-index:30;
+}
+
+.arpeggiator{{{cns}}} .mod-control-group .mod-knob {
+    position:absolute;
+}
+
+.arpeggiator{{{cns}}} .mod-control-group .mod-knob .mod-knob-image {
+    background-repeat:no-repeat;
+    width: 54px;
+    height: 59px;
+}
+
+/* Sync */
+.arpeggiator{{{cns}}} .mod-control-group .mod-knob.arpeggiator-sync {
+    top: 58px;
+    left: 35px;
+}
+.arpeggiator{{{cns}}} .mod-control-group .mod-knob.arpeggiator-sync .mod-knob-image {
+    background-image: url(/resources/sprite_sheets/sync_slider.png{{{ns}}});
+    background-repeat:no-repeat;
+    width: 15px;
+    height: 56px;
+}
+
+/* BPM */
+.arpeggiator{{{cns}}} .mod-control-group .mod-knob.arpeggiator-Bpm {
+    top: 50px;
+    left: 179px;
+}
+.arpeggiator{{{cns}}} .mod-control-group .mod-knob.arpeggiator-Bpm .mod-knob-image {
+    background-image: url(/resources/sprite_sheets/Knob_Red_66.png{{{ns}}});
+}
+.arpeggiator{{{cns}}} .mod-control-group .mod-knob.arpeggiator-Bpm .value {
+    margin: -9px 0 0 -2px;
+    text-align: right;
+    width: 43px;
+}
+
+/* Divisions */
+.arpeggiator{{{cns}}} .mod-control-group .mod-knob.arpeggiator-Divisions {
+    top: 50px;
+    left: 309px;
+}
+.arpeggiator{{{cns}}} .mod-control-group .mod-knob.arpeggiator-Divisions .mod-knob-image {
+    background-image: url(/resources/sprite_sheets/Knob_Red_13.png{{{ns}}});
+}
+.arpeggiator{{{cns}}} .mod-control-group .mod-knob.arpeggiator-Divisions .value {
+    margin: -9px 0 0 -4px;
+    text-align: left;
+    margin-left: 10px;
+}
+
+
+/* velocity */
+.arpeggiator{{{cns}}} .mod-control-group .mod-knob.arpeggiator-velocity {
+    top: 182px;
+    left: 54px;
+}
+.arpeggiator{{{cns}}} .mod-control-group .mod-knob.arpeggiator-velocity .mod-knob-image {
+    background-image: url(/resources/sprite_sheets/Knob_Blue_70.png{{{ns}}});
+}
+.arpeggiator{{{cns}}} .mod-control-group .mod-knob.arpeggiator-velocity .value {
+    margin: -8px 0 0 -4px;
+}
+
+/* noteLength */
+.arpeggiator{{{cns}}} .mod-control-group .mod-knob.arpeggiator-noteLength {
+    top: 182px;
+    left: 180px;
+}
+.arpeggiator{{{cns}}} .mod-control-group .mod-knob.arpeggiator-noteLength .mod-knob-image {
+    background-image: url(/resources/sprite_sheets/Knob_Blue_70.png{{{ns}}});
+}
+.arpeggiator{{{cns}}} .mod-control-group .mod-knob.arpeggiator-noteLength .value {
+    margin: -8px 0 0 -4px;
+}
+
+
+/* octaveSpread */
+.arpeggiator{{{cns}}} .mod-control-group .mod-knob.arpeggiator-octaveSpread {
+    top: 187px;
+    left: 313px;
+}
+.arpeggiator{{{cns}}} .mod-control-group .mod-knob.arpeggiator-octaveSpread .mod-knob-image {
+    background-image: url(/resources/sprite_sheets/Knob_Blue_4.png{{{ns}}});
+    width: 49px;
+    height: 53px;
+}
+.arpeggiator{{{cns}}} .mod-control-group .mod-knob.arpeggiator-octaveSpread .value {
+    margin: -7px 0 0 -9px;
+    width: 55px;
+    text-align: right;
+}
+
+
+/* latch */
+.arpeggiator{{{cns}}} .mod-control-group .mod-knob.arpeggiator-latch {
+    top: 376px;
+    left: 66px;
+}
+.arpeggiator{{{cns}}} .mod-control-group .mod-knob.arpeggiator-latch .mod-knob-image {
+    background-image: url(/resources/sprite_sheets/switch_toggle.png{{{ns}}});
+    background-position: left center;
+    background-repeat:no-repeat;
+    cursor: pointer;
+    width: 33px;
+    height: 40px;
+}
+.arpeggiator{{{cns}}} .mod-control-group .mod-knob.arpeggiator-latch .mod-knob-image.on {
+    background-position:right center;
+    margin-top: -5px;
+}
+
+
+
+/* = ENUMERATED LIST
+================================================ */
+/*
+.arpeggiator{{{cns}}} .mod-enumerated-group {
+    height:31px;
+    margin:20px auto 0 !important;
+    position:relative;
+    width:190px;
+    z-index:35;
+}
+*/
+
+.arpeggiator{{{cns}}} .mod-enumerated {
+    background-position:right center;
+    background-repeat:no-repeat;
+    overflow:hidden;
+    position:absolute;
+    text-align:left;
+    width: 101px;
+    font-size: 13px;
+    color: #D42A2A;
+    line-height:2;
+}
+
+.arpeggiator{{{cns}}} .mod-enumerated.arpeggiator-arpMode {
+    top:318px;
+    left: 29px;
+    width: 103px;
+}
+
+.arpeggiator{{{cns}}} .mod-enumerated.arpeggiator-octaveMode {
+    top:318px;
+    left: 283px;
+    width: 103px;
+}
+
+.arpeggiator{{{cns}}} .mod-enumerated .mod-enumerated-selected {
+    background-color:rgba(0,0,0,.3);
+    box-shadow:inset 0 0 4px rgba(0,0,0,.3);
+    padding-left: 5px;
+    font-weight: bold;
+}
+
+.arpeggiator{{{cns}}} .mod-enumerated .mod-enumerated-list {
+    display:none;
+    width: 103px;
+}
+
+.arpeggiator{{{cns}}} .mod-enumerated .mod-enumerated-list {
+    background-color:rgba(0, 0, 0, .9);
+    display:none;
+    height:115px;
+    overflow:auto;
+    position:relative;
+    z-index: 40;
+}
+
+.arpeggiator{{{cns}}} .mod-enumerated .mod-enumerated-list > div {
+    padding:3px 9px;
+}
+
+.arpeggiator{{{cns}}} .mod-enumerated .mod-enumerated-list > div:hover {
+    background-color:rgba(255,255,255,.2);
+    font-weight: bold;
+    cursor:pointer;
+}
