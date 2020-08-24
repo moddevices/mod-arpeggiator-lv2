@@ -67,20 +67,17 @@ void PluginClock::setInternalBpmValue(float internalBpm)
 void PluginClock::setBpm(float bpm)
 {
 	this->bpm = bpm;
-	update();
 }
 
 void PluginClock::setSampleRate(float sampleRate)
 {
 	this->sampleRate = sampleRate;
-	update();
 }
 
 void PluginClock::setDivision(int setDivision)
 {
 	this->division = setDivision;
 	this->divisionValue = divisionValues[setDivision];
-	update();
 }
 
 void PluginClock::syncClock()
@@ -94,7 +91,6 @@ void PluginClock::syncClock()
 void PluginClock::setPos(uint32_t pos)
 {
 	this->pos = pos;
-	update();
 }
 
 void PluginClock::setNumBarsElapsed(uint32_t numBarsElapsed)
@@ -147,13 +143,6 @@ uint32_t PluginClock::getPos() const
 	return pos;
 }
 
-void PluginClock::update()
-{
-	if (sync) {
-		syncClock();
-	}
-}
-
 void PluginClock::tick()
 {
 	period = static_cast<uint32_t>(sampleRate * (60.0f / (bpm * (divisionValue / 2.0f))));
@@ -190,7 +179,9 @@ void PluginClock::tick()
 		case HOST_SYNC:
 			if ((hostBpm != previousBpm && (fabs(previousBpm - hostBpm) > threshold)) || (syncMode != previousSyncMode)) {
 				setBpm(hostBpm);
-				syncClock();
+				if (playing) {
+					syncClock();
+				}
 				previousBpm = hostBpm;
 				previousSyncMode = syncMode;
 			}
@@ -198,7 +189,9 @@ void PluginClock::tick()
 		case HOST_SYNC_QUANTIZED_START: //TODO fix this duplicate
 			if ((hostBpm != previousBpm && (fabs(previousBpm - hostBpm) > threshold)) || (syncMode != previousSyncMode)) {
 				setBpm(hostBpm);
-				syncClock();
+				if (playing) {
+					syncClock();
+				}
 				previousBpm = hostBpm;
 				previousSyncMode = syncMode;
 			}
@@ -224,7 +217,7 @@ void PluginClock::tick()
 		gate = true;
 		trigger = true;
 	} else if (pos > halfWavelength && trigger) {
-		if (playing) {
+		if (playing && sync) {
 			syncClock();
 		}
 		trigger = false;

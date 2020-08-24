@@ -36,7 +36,6 @@ public:
 
 private:
 	void setBpm(float bpm);
-	void update();
 
 	bool gate;
 	bool trigger;
