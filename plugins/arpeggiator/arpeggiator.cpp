@@ -39,6 +39,8 @@ Arpeggiator::~Arpeggiator()
 {
 	delete[] arpPattern;
 	arpPattern = nullptr;
+	delete[] octavePattern;
+	octavePattern = nullptr;
 }
 
 void Arpeggiator::setArpEnabled(bool arpEnabled)
