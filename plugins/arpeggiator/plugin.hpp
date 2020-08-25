@@ -12,7 +12,7 @@ START_NAMESPACE_DISTRHO
 
 class PluginArpeggiator : public Plugin {
 public:
-    enum Parameters {
+	enum Parameters {
 		paramSyncMode = 0,
 		paramBpm,
 		paramDivision,
@@ -24,8 +24,8 @@ public:
 		paramLatch,
 		paramTimeOut,
 		paramEnabled,
-        paramCount
-    };
+		paramCount
+	};
 
     PluginArpeggiator();
 
@@ -93,7 +93,7 @@ protected:
 
 private:
 	Arpeggiator arpeggiator;
-    float fParams[paramCount];
+	float fParams[paramCount];
 	int active_notes[20];
 	int next_note = 0;
 	int arp_counter = 0;
@@ -106,7 +106,7 @@ private:
 	bool trigger = false;
 	int previousSyncMode = 0;
 
-    DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginArpeggiator)
+	DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginArpeggiator)
 };
 
 // -----------------------------------------------------------------------
