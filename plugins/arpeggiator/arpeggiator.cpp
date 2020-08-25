@@ -208,12 +208,6 @@ void Arpeggiator::reset()
 	firstNote = false;
 	first = true;
 
-	//note_on_received = false;
-	//switched_on = false;
-	//bar_length = 4; //TODO make this variable
-	//octave_up = false;
-	//arp_up    = true;
-
 	for (unsigned i = 0; i < NUM_VOICES; i++) {
 		midiNotes[i][MIDI_NOTE] = EMPTY_SLOT;
 		midiNotes[i][MIDI_CHANNEL] = 0;
@@ -270,14 +264,9 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 				case MIDI_NOTEON:
 					if (notesPressed == 0) {
 						if (!latchPlaying) { //TODO check if there needs to be an exception when using sync
-							if (clock.getSyncMode() == 0.0) {
-								//clock.setPos(0);
-							}
 							octavePattern[octaveMode]->reset();
 							clock.reset();
 							notePlayed = 0;
-						}
-						if (!latchPlaying) {
 							firstNote = true;
 						}
 						if (latchMode) {
