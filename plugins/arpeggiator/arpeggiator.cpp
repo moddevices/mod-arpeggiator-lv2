@@ -391,7 +391,7 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 
 		clock.tick();
 
-		bool hold = (clock.getPos() < (clock.getPeriod() - 12000)) ? false : true;
+		bool hold = (clock.getPos() < (clock.getPeriod() * 0.8)) ? false : true;
 
 		if ((clock.getGate() && !timeOut && !hold) || (firstNote && !timeOut && !hold && clock.getSyncMode() == 1)) {
 

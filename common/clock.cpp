@@ -198,17 +198,6 @@ void PluginClock::tick()
 			break;
 	}
 
-	if  (sync) {
-		if (hostBarBeat < 0.01 && !phaseReset && pos < 20) {
-			syncClock();
-			phaseReset = true;
-		} else if (hostBarBeat >= 1.0 && phaseReset && barLength > 1.0) {
-			phaseReset = false;
-		} else if (hostBarBeat > 0.9 && phaseReset && barLength == 0.0) {
-			phaseReset = false;
-		}
-	}
-
 	if (pos > period) {
 		pos = 0;
 	}
