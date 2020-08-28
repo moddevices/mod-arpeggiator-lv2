@@ -362,11 +362,25 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 
 	arpPattern[arpMode]->setPatternSize(activeNotes);
 
+	int patternSize;
+
+	switch (arpMode)
+	{
+		case ARP_UP_DOWN:
+			patternSize = (activeNotes >= 3) ? activeNotes + (activeNotes - 2) : activeNotes;
+			break;
+		case ARP_UP_DOWN_ALT:
+			patternSize = (activeNotes >= 3) ? activeNotes * 2 : activeNotes;
+			break;
+		default:
+			patternSize = activeNotes;
+			break;
+	}
 
 	switch (octaveMode)
 	{
 		case ONE_OCT_UP_PER_CYCLE:
-			octavePattern[octaveMode]->setPatternSize(activeNotes);
+			octavePattern[octaveMode]->setPatternSize(patternSize);
 			octavePattern[octaveMode]->setCycleRange(octaveSpread);
 			break;
 		default:
