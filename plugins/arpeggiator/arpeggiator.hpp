@@ -9,7 +9,7 @@
 #include "utils.hpp"
 
 
-#define NUM_VOICES 16
+#define NUM_VOICES 200
 #define NUM_NOTE_OFF_SLOTS 200
 #define PLUGIN_URI "http://moddevices.com/plugins/mod-devel/arpeggiator"
 
@@ -20,6 +20,9 @@
 #define MIDI_NOTE 0
 #define MIDI_CHANNEL 1
 #define TIMER 2
+
+#define NUM_ARP_MODES 6
+#define NUM_OCTAVE_MODES 5
 
 #define NUM_MIDI_CHANNELS 16 //TODO check how many are needed
 
@@ -78,7 +81,6 @@ private:
     uint8_t midiNotes[NUM_VOICES][2];
     uint32_t noteOffBuffer[NUM_NOTE_OFF_SLOTS][3];
 
-	int numActiveNotes = 0;
 	int octaveMode = 0;
 	int octaveSpread = 1;
 	int arpMode = 0;
