@@ -252,8 +252,10 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 
 			uint8_t noteToFind;
 			size_t findFreeVoice;
+			size_t findActivePitch;
 			size_t searchNote;
 			bool voiceFound;
+			bool pitchFound;
 
 			if (midiNote == 0x7b && events[i].size == 3) {
 				activeNotes = 0;
@@ -287,19 +289,34 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 							}
 							resetPattern = true;
 						}
-						notesPressed++;
-						activeNotes++;
+
 						findFreeVoice = 0;
+						findActivePitch = 0;
 						voiceFound = false;
-						while (findFreeVoice < NUM_VOICES && !voiceFound)
+						pitchFound = false;
+
+						while (findActivePitch < NUM_VOICES && !pitchFound)
 						{
-							if (midiNotes[findFreeVoice][MIDI_NOTE] == EMPTY_SLOT) {
-								midiNotes[findFreeVoice][MIDI_NOTE] = midiNote;
-								midiNotes[findFreeVoice][MIDI_CHANNEL] = channel;
-								voiceFound = true;
+							if (midiNotes[findActivePitch][MIDI_NOTE] == (uint32_t)midiNote) {
+								pitchFound = true;
 							}
-							findFreeVoice++;
+							findActivePitch++;
 						}
+
+						if (!pitchFound) {
+							while (findFreeVoice < NUM_VOICES && !voiceFound)
+							{
+								if (midiNotes[findFreeVoice][MIDI_NOTE] == EMPTY_SLOT) {
+									midiNotes[findFreeVoice][MIDI_NOTE] = midiNote;
+									midiNotes[findFreeVoice][MIDI_CHANNEL] = channel;
+									voiceFound = true;
+								}
+								findFreeVoice++;
+							}
+							notesPressed++;
+							activeNotes++;
+						}
+
 						if (arpMode != ARP_PLAYED)
 							utils.quicksort(midiNotes, 0, NUM_VOICES - 1);
 						if (midiNote < midiNotes[notePlayed - 1][MIDI_NOTE] && notePlayed > 0) {
@@ -396,7 +413,6 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 			octavePattern[octaveMode]->setPatternSize(octaveSpread);
 			break;
 	}
-
 
 	for (unsigned s = 0; s < n_frames; s++) {
 
