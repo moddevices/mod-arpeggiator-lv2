@@ -43,8 +43,9 @@ make install
 # Caveats
 
 * The plugins can be used outside of the MOD ecosystem. But
-  because they are developed for usage inside the MOD there
-  might be things that won't work properly.
+  because they are developed for usage inside the MOD, there
+  might be things that won't work properly. Especially the host-sync
+  might not work as intended on other plugin-hosts.
 * DPF supports a range of plugins formats. However, this plugin
   uses some LV2 specific properties for the host sync function.
   Therefore this plugin is only available as an LV2 plugin for now.
