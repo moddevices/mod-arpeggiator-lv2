@@ -30,15 +30,6 @@ The arpeggiator has the following options:
     original pitch. The way how this octaves will be added to the original notes
     is determent by the `octave mode` control.
 
-# MIDI-pattern
-
-The MIDI-pattern plugin can be used to create rhythmic
-patterns. The plugins takes the incoming note and replaces
-the velocity of the note by a value which is set by one of the
-faders of the plugin. Because the plugin iterates through
-the faders it generates a sort of rhythmic sequence. The CV control of the plugin
-can be used to retrigger the sequence.
-
 # Installation
 
 To install the plugins do:
@@ -54,5 +45,6 @@ make install
 * The plugins can be used outside of the MOD ecosystem. But
   because they are developed for usage inside the MOD there
   might be things that won't work properly.
-* The plugins contain lv2 "CV ports", this feature is not supported by all
-plugin hosts (yet).
+* DPF supports a range of plugins formats. However, this plugin
+  uses some LV2 specific properties for the host sync function.
+  Therefore this plugin is only available as an LV2 plugin for now.
