@@ -246,16 +246,17 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 		uint8_t status = events[i].data[0] & 0xF0;
 
 		uint8_t midiNote = events[i].data[1];
-
+		uint8_t noteToFind;
+		size_t searchNote;
 
 		if (arpEnabled) {
 
-			uint8_t noteToFind;
-			size_t findFreeVoice;
-			size_t findActivePitch;
-			size_t searchNote;
+			midiNotesCopied = false;
+
 			bool voiceFound;
 			bool pitchFound;
+			size_t findFreeVoice;
+			size_t findActivePitch;
 
 			if (midiNote == 0x7b && events[i].size == 3) {
 				activeNotes = 0;
@@ -374,12 +375,44 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 					break;
 			}
 		} else { //if arpeggiator is off
+
+			if (!midiNotesCopied) {
+				for (unsigned b = 0; b < NUM_VOICES; b++) {
+					midiNotesBypassed[b] = midiNotes[b][MIDI_NOTE];
+				}
+				midiNotesCopied = true;
+			}
+
 			if (!latchMode) {
+
+				reset();
+
 				for (unsigned clear_notes = 0; clear_notes < NUM_VOICES; clear_notes++) {
 					midiNotes[clear_notes][MIDI_NOTE] = EMPTY_SLOT;
 					midiNotes[clear_notes][MIDI_CHANNEL] = 0;
 				}
+
+			} else {
+
+				uint8_t noteToFind = midiNote;
+				size_t searchNote = 0;
+
+				switch (status)
+				{
+					case MIDI_NOTEOFF:
+						while (searchNote < NUM_VOICES)
+						{
+							if (midiNotesBypassed[searchNote] == noteToFind) {
+								midiNotesBypassed[searchNote] = EMPTY_SLOT;
+								searchNote = NUM_VOICES;
+								notesPressed = (notesPressed > 0) ? notesPressed - 1 : 0;
+							}
+							searchNote++;
+						}
+						break;
+				}
 			}
+
 			//send MIDI message through
 			midiHandler.appendMidiThroughMessage(events[i]);
 			first = true;

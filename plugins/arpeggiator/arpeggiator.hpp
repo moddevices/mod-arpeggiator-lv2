@@ -79,6 +79,7 @@ private:
 	int notePlayed = 0;
 
     uint8_t midiNotes[NUM_VOICES][2];
+    uint8_t midiNotesBypassed[NUM_VOICES];
     uint32_t noteOffBuffer[NUM_NOTE_OFF_SLOTS][3];
 
 	int octaveMode = 0;
@@ -107,6 +108,7 @@ private:
 	bool firstNote = false;
 	bool quantizedStart = false;
 	bool resetPattern = false;
+	bool midiNotesCopied = false;
 
 	ArpUtils utils;
 	Pattern **arpPattern;
