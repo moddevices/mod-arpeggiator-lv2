@@ -53,7 +53,7 @@ public:
 	void setOctaveSpread(int octaveSpread);
 	void setArpMode(int arpMode);
 	void setOctaveMode(int octaveMode);
-	void setTimeOut(int timeOut);
+	void setPanic(bool panic);
 	bool getArpEnabled() const;
 	bool getLatchMode() const;
 	float getSampleRate() const;
@@ -65,7 +65,7 @@ public:
 	int getOctaveSpread() const;
 	int getArpMode() const;
 	int getOctaveMode() const;
-	int getTimeOut() const;
+	bool getPanic() const;
 	void transmitHostInfo(const bool playing, const float beatsPerBar,
 	const int beat, const float barBeat, const double bpm);
 	void reset();
@@ -94,7 +94,7 @@ private:
 	int previousSyncMode = 0;
 	int activeNotesIndex = 0;
 	int activeNotesBypassed = 0;
-	int timeOutTime = 5000;
+	int timeOutTime = 1000;
 	int firstNoteTimer = 0;
 	float barBeat;
 
@@ -109,6 +109,7 @@ private:
 	bool quantizedStart = false;
 	bool resetPattern = false;
 	bool midiNotesCopied = false;
+	bool panic = false;
 
 	ArpUtils utils;
 	Pattern **arpPattern;

@@ -7,10 +7,11 @@
 @prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix rsz:  <http://lv2plug.in/ns/ext/resize-port#> .
-@prefix unit: <http://lv2plug.in/ns/extensions/units#> .
+@prefix units: <http://lv2plug.in/ns/extensions/units#> .
+@prefix epp: <http://lv2plug.in/ns/ext/port-props#> .
 
 <http://moddevices.com/plugins/mod-devel/arpeggiator>
-    a lv2:MIDIPlugin, lv2:Plugin ;
+    a lv2:Plugin, lv2:UtilityPlugin , mod:MIDIPlugin ;
 
     lv2:extensionData opts:interface ,
                       <http://kxstudio.sf.net/ns/lv2ext/programs#Interface> ;
@@ -79,6 +80,7 @@
         lv2:minimum 20 ;
         lv2:maximum 280 ;
         lv2:portProperty lv2:integer ;
+        units:unit units:bpm ;
     ] ,
     [
         a lv2:InputPort, lv2:ControlPort ;
@@ -272,12 +274,12 @@
     [
         a lv2:InputPort, lv2:ControlPort ;
         lv2:index 11 ;
-        lv2:name """Time Out""" ;
-        lv2:symbol "timeOut" ;
-        lv2:default 1000 ;
+        lv2:name """Panic""" ;
+        lv2:symbol "Panic" ;
+        lv2:default 0 ;
         lv2:minimum 0 ;
-        lv2:maximum 48000 ;
-        lv2:portProperty lv2:integer ;
+        lv2:maximum 1 ;
+        lv2:portProperty lv2:integer, lv2:toggled, epp:trigger ;
     ] ,
     [
         a lv2:InputPort, lv2:ControlPort ;
@@ -296,9 +298,9 @@
     rdfs:comment """A MIDI arpeggiator""" ;
 
     mod:brand "MOD" ;
-    mod:label "mod-arpeggiator" ;
+    mod:label "Arpeggiator" ;
 
-    doap:name """mod-arpeggiator""" ;
+    doap:name """Arpeggiator""" ;
     doap:license <https://spdx.org/licenses/GPL-2.0-or-later> ;
 
     doap:maintainer [

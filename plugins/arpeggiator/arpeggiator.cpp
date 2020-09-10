@@ -118,9 +118,9 @@ void Arpeggiator::setOctaveMode(int octaveMode)
 	this->octaveMode = octaveMode;
 }
 
-void Arpeggiator::setTimeOut(int timeOutTime)
+void Arpeggiator::setPanic(bool panic)
 {
-	this->timeOutTime = timeOutTime;
+	this->panic = panic;
 }
 
 bool Arpeggiator::getArpEnabled() const
@@ -178,9 +178,9 @@ int Arpeggiator::getOctaveMode() const
 	return octaveMode;
 }
 
-int Arpeggiator::getTimeOut() const
+bool Arpeggiator::getPanic() const
 {
-	return timeOutTime;
+	return panic;
 }
 
 void Arpeggiator::transmitHostInfo(const bool playing, const float beatsPerBar,
@@ -239,6 +239,11 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 	}
 	if (latchMode != previousLatch) {
 		previousLatch = latchMode;
+	}
+
+	if (panic) {
+		reset();
+		panic = false;
 	}
 
 	for (uint32_t i=0; i<eventCount; ++i) {

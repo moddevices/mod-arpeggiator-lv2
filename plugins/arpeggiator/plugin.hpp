@@ -22,7 +22,7 @@ public:
 		paramArpMode,
 		paramOctaveMode,
 		paramLatch,
-		paramTimeOut,
+		paramPanic,
 		paramEnabled,
 		paramCount
 	};
