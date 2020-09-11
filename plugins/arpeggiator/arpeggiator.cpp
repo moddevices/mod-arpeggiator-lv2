@@ -1,5 +1,4 @@
 #include "arpeggiator.hpp"
-#include <iostream>
 
 Arpeggiator::Arpeggiator()
 {
@@ -294,7 +293,6 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 									midiNotes[i][MIDI_CHANNEL] = 0;
 								}
 							}
-							std::cout << "patterm reset" << std::endl;
 							resetPattern = true;
 						}
 
@@ -485,7 +483,6 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 					arpPattern[arpMode]->reset();
 					if (arpMode == ARP_DOWN) {
 						arpPattern[arpMode]->setStep(activeNotes - 1);
-						std::cout << "reseted notes to: " << activeNotes - 1 << std::endl;
 					}
 
 					resetPattern = false;
