@@ -3,7 +3,7 @@
 PluginClock::PluginClock() :
 	gate(false),
 	trigger(false),
-	sync(true),
+	beatSync(true),
 	phaseReset(false),
 	playing(false),
 	previousPlaying(false),
@@ -33,7 +33,7 @@ void PluginClock::transmitHostInfo(const bool playing, const float beatsPerBar,
 	this->hostBpm = hostBpm;
 	this->playing = playing;
 
-	if (playing && !previousPlaying && sync) {
+	if (playing && !previousPlaying && beatSync) {
 		syncClock();
 	}
 	if (playing != previousPlaying) {
@@ -46,13 +46,13 @@ void PluginClock::setSyncMode(int mode)
 	switch (mode)
 	{
 		case FREE_RUNNING:
-			sync = false;
+			beatSync = false;
 			break;
-		case HOST_SYNC:
-			sync = true;
+		case HOST_BPM_SYNC:
+			beatSync = false;
 			break;
-		case HOST_SYNC_QUANTIZED_START:
-			sync = true;
+		case HOST_QUANTIZED_SYNC:
+			beatSync = true;
 			break;
 	}
 
@@ -176,17 +176,14 @@ void PluginClock::tick()
 				previousSyncMode = syncMode;
 			}
 			break;
-		case HOST_SYNC:
+		case HOST_BPM_SYNC:
 			if ((hostBpm != previousBpm && (fabs(previousBpm - hostBpm) > threshold)) || (syncMode != previousSyncMode)) {
 				setBpm(hostBpm);
-				if (playing) {
-					syncClock();
-				}
 				previousBpm = hostBpm;
 				previousSyncMode = syncMode;
 			}
 			break;
-		case HOST_SYNC_QUANTIZED_START: //TODO fix this duplicate
+		case HOST_QUANTIZED_SYNC: //TODO fix this duplicate
 			if ((hostBpm != previousBpm && (fabs(previousBpm - hostBpm) > threshold)) || (syncMode != previousSyncMode)) {
 				setBpm(hostBpm);
 				if (playing) {
@@ -206,13 +203,13 @@ void PluginClock::tick()
 		gate = true;
 		trigger = true;
 	} else if (pos > halfWavelength && trigger) {
-		if (playing && sync) {
+		if (playing && beatSync) {
 			syncClock();
 		}
 		trigger = false;
 	}
 
-	if (playing && sync) {
+	if (playing && beatSync) {
 		syncClock(); //hard-sync to host position
 	} else {
 		pos++;
