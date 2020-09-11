@@ -1,4 +1,5 @@
 #include "arpeggiator.hpp"
+#include <iostream>
 
 Arpeggiator::Arpeggiator()
 {
@@ -293,6 +294,7 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 									midiNotes[i][MIDI_CHANNEL] = 0;
 								}
 							}
+							std::cout << "patterm reset" << std::endl;
 							resetPattern = true;
 						}
 
@@ -472,7 +474,7 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 
 		if ((clock.getGate() && !timeOut && !hold)) {
 
-			if (first && arpEnabled) {
+			if (arpEnabled) {
 
 				if (resetPattern) {
 					octavePattern[octaveMode]->reset();
@@ -483,22 +485,26 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 					arpPattern[arpMode]->reset();
 					if (arpMode == ARP_DOWN) {
 						arpPattern[arpMode]->setStep(activeNotes - 1);
+						std::cout << "reseted notes to: " << activeNotes - 1 << std::endl;
 					}
 
 					resetPattern = false;
 					notePlayed = arpPattern[arpMode]->getStep();
 				}
 
-				for (uint8_t c = 0; c < NUM_MIDI_CHANNELS; c++) {
-					//send note off for everything
-					midiEvent.frame = s;
-					midiEvent.size = 3;
-					midiEvent.data[0] = 0xb0 | c;
-					midiEvent.data[1] = 0x7b;
-					midiEvent.data[2] = 0;
+				if (first) {
 
-					midiHandler.appendMidiMessage(midiEvent);
-					first = false;
+					for (uint8_t c = 0; c < NUM_MIDI_CHANNELS; c++) {
+						//send note off for everything
+						midiEvent.frame = s;
+						midiEvent.size = 3;
+						midiEvent.data[0] = 0xb0 | c;
+						midiEvent.data[1] = 0x7b;
+						midiEvent.data[2] = 0;
+
+						midiHandler.appendMidiMessage(midiEvent);
+						first = false;
+					}
 				}
 			}
 
