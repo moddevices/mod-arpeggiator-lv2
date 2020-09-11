@@ -187,14 +187,14 @@ void PluginArpeggiator::initParameter(uint32_t index, Parameter& parameter)
 			parameter.ranges.min = 0.f;
 			parameter.ranges.max = 1.f;
 			break;
-		case paramTimeOut:
-			parameter.hints      = kParameterIsAutomable | kParameterIsInteger;
-			parameter.name       = "Time Out";
-			parameter.symbol     = "timeOut";
+		case paramPanic:
+			parameter.hints      = kParameterIsAutomable | kParameterIsTrigger;
+			parameter.name       = "Panic";
+			parameter.symbol     = "Panic";
 			parameter.unit       = "";
 			parameter.ranges.def = 0;
 			parameter.ranges.min = 0;
-			parameter.ranges.max = 48000;
+			parameter.ranges.max = 1;
 			break;
 		case paramEnabled:
 			parameter.hints      = kParameterIsBoolean;
@@ -253,8 +253,8 @@ float PluginArpeggiator::getParameterValue(uint32_t index) const
 			return arpeggiator.getOctaveMode();
 		case paramLatch:
 			return arpeggiator.getLatchMode();
-		case paramTimeOut:
-			return arpeggiator.getTimeOut();
+		case paramPanic:
+			return arpeggiator.getPanic();
 		case paramEnabled:
 			return arpeggiator.getArpEnabled();
 	}
@@ -294,8 +294,8 @@ void PluginArpeggiator::setParameterValue(uint32_t index, float value)
 		case paramLatch:
 			arpeggiator.setLatchMode(static_cast<bool>(value));
 			break;
-		case paramTimeOut:
-			arpeggiator.setTimeOut(static_cast<int>(value));
+		case paramPanic:
+			arpeggiator.setPanic(static_cast<bool>(value));
 			break;
 		case paramEnabled:
 			arpeggiator.setArpEnabled(static_cast<bool>(value));
