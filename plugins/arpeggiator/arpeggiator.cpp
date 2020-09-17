@@ -53,9 +53,12 @@ void Arpeggiator::setLatchMode(bool latchMode)
 	this->latchMode = latchMode;
 }
 
-void Arpeggiator::setSampleRate(float sampleRate)
+void Arpeggiator::setSampleRate(float newSampleRate)
 {
-	clock.setSampleRate(sampleRate);
+	if (newSampleRate != sampleRate) {
+		clock.setSampleRate(newSampleRate);
+		sampleRate = newSampleRate;
+	}
 }
 
 void Arpeggiator::setSyncMode(int mode)
@@ -77,14 +80,20 @@ void Arpeggiator::setSyncMode(int mode)
 	}
 }
 
-void Arpeggiator::setBpm(double bpm)
+void Arpeggiator::setBpm(double newBpm)
 {
-	clock.setInternalBpmValue(static_cast<float>(bpm));
+	if (newBpm != bpm) {
+		clock.setInternalBpmValue(static_cast<float>(newBpm));
+		bpm = newBpm;
+	}
 }
 
-void Arpeggiator::setDivision(int division)
+void Arpeggiator::setDivision(int newDivision)
 {
-	clock.setDivision(division);
+	if (newDivision != division) {
+		clock.setDivision(newDivision);
+		division = newDivision;
+	}
 }
 
 void Arpeggiator::setVelocity(uint8_t velocity)
@@ -468,9 +477,7 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 
 		clock.tick();
 
-		bool hold = ((clock.getPos() < (clock.getPeriod() * 0.8)) || !firstNote) ? false : true;
-
-		if ((clock.getGate() && !timeOut && !hold)) {
+		if ((clock.getGate() && !timeOut)) {
 
 			if (arpEnabled) {
 
