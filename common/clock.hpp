@@ -6,8 +6,8 @@
 
 enum SyncMode {
 	FREE_RUNNING = 0,
-	HOST_SYNC,
-	HOST_SYNC_QUANTIZED_START
+	HOST_BPM_SYNC,
+	HOST_QUANTIZED_SYNC
 };
 
 class PluginClock {
@@ -39,7 +39,7 @@ private:
 
 	bool gate;
 	bool trigger;
-	bool sync;
+	bool beatSync;
 	bool phaseReset;
 	bool playing;
 	bool previousPlaying;

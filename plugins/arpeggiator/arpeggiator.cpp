@@ -66,12 +66,12 @@ void Arpeggiator::setSyncMode(int mode)
 			clock.setSyncMode(FREE_RUNNING);
 			quantizedStart = false;
 			break;
-		case HOST_SYNC:
-			clock.setSyncMode(HOST_SYNC);
+		case HOST_BPM_SYNC:
+			clock.setSyncMode(HOST_BPM_SYNC);
 			quantizedStart = false;
 			break;
-		case HOST_SYNC_QUANTIZED_START:
-			clock.setSyncMode(HOST_SYNC_QUANTIZED_START);
+		case HOST_QUANTIZED_SYNC:
+			clock.setSyncMode(HOST_QUANTIZED_SYNC);
 			quantizedStart = true;
 			break;
 	}
@@ -461,7 +461,7 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 			firstNoteTimer++;
 		}
 
-		if (clock.getSyncMode() == 0 && first) {
+		if (clock.getSyncMode() <= 1 && first) {
 			clock.setPos(0);
 			clock.reset();
 		}
@@ -470,9 +470,9 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 
 		bool hold = ((clock.getPos() < (clock.getPeriod() * 0.8)) || !firstNote) ? false : true;
 
-		if ((clock.getGate() && !timeOut && !hold) || (firstNote && !timeOut && !hold && clock.getSyncMode() == 1)) {
+		if ((clock.getGate() && !timeOut && !hold)) {
 
-			if (first && arpEnabled) {
+			if (arpEnabled) {
 
 				if (resetPattern) {
 					octavePattern[octaveMode]->reset();
@@ -489,16 +489,19 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 					notePlayed = arpPattern[arpMode]->getStep();
 				}
 
-				for (uint8_t c = 0; c < NUM_MIDI_CHANNELS; c++) {
-					//send note off for everything
-					midiEvent.frame = s;
-					midiEvent.size = 3;
-					midiEvent.data[0] = 0xb0 | c;
-					midiEvent.data[1] = 0x7b;
-					midiEvent.data[2] = 0;
+				if (first) {
 
-					midiHandler.appendMidiMessage(midiEvent);
-					first = false;
+					for (uint8_t c = 0; c < NUM_MIDI_CHANNELS; c++) {
+						//send note off for everything
+						midiEvent.frame = s;
+						midiEvent.size = 3;
+						midiEvent.data[0] = 0xb0 | c;
+						midiEvent.data[1] = 0x7b;
+						midiEvent.data[2] = 0;
+
+						midiHandler.appendMidiMessage(midiEvent);
+						first = false;
+					}
 				}
 			}
 
