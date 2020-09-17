@@ -24,7 +24,7 @@
 #define NUM_ARP_MODES 6
 #define NUM_OCTAVE_MODES 5
 
-#define NUM_MIDI_CHANNELS 16 //TODO check how many are needed
+#define NUM_MIDI_CHANNELS 16
 
 //#define MIDI_BUFFER_SIZE 300
 
