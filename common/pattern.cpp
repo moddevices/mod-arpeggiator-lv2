@@ -1,5 +1,4 @@
 #include "pattern.hpp"
-#include <iostream>
 
 Pattern::Pattern() : size(1), step(0), range(1)
 {

@@ -23,6 +23,7 @@ public:
 	void syncClock();
 	void setPos(uint32_t pos);
 	void setNumBarsElapsed(uint32_t numBarsElapsed);
+	void calcPeriod();
 	void closeGate();
 	void reset();
 	bool getGate() const;
@@ -44,9 +45,11 @@ private:
 	bool playing;
 	bool previousPlaying;
 	bool endOfBar;
+	bool init;
 
 	uint32_t period;
 	uint32_t halfWavelength;
+	uint32_t quarterWaveLength;
 	uint32_t pos;
 
 	float beatsPerBar;

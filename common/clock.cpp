@@ -8,6 +8,7 @@ PluginClock::PluginClock() :
 	playing(false),
 	previousPlaying(false),
 	endOfBar(false),
+	init(false),
 	pos(0),
 	bpm(120.0),
 	internalBpm(120.0),
@@ -39,6 +40,11 @@ void PluginClock::transmitHostInfo(const bool playing, const float beatsPerBar,
 	if (playing != previousPlaying) {
 		previousPlaying = playing;
 	}
+
+	if (!init) {
+		calcPeriod();
+		init = true;
+	}
 }
 
 void PluginClock::setSyncMode(int mode)
@@ -67,24 +73,25 @@ void PluginClock::setInternalBpmValue(float internalBpm)
 void PluginClock::setBpm(float bpm)
 {
 	this->bpm = bpm;
+	calcPeriod();
 }
 
 void PluginClock::setSampleRate(float sampleRate)
 {
 	this->sampleRate = sampleRate;
+	calcPeriod();
 }
 
 void PluginClock::setDivision(int setDivision)
 {
 	this->division = setDivision;
 	this->divisionValue = divisionValues[setDivision];
+
+	calcPeriod();
 }
 
 void PluginClock::syncClock()
 {
-	period = static_cast<uint32_t>(sampleRate * (60.0f / (bpm * (divisionValue / 2.0f))));
-	period = (period <= 0) ? 1 : period;
-
     pos = static_cast<uint32_t>(fmod(sampleRate * (60.0f / bpm) * (hostBarBeat + (numBarsElapsed * beatsPerBar)), sampleRate * (60.0f / (bpm * (divisionValue / 2.0f)))));
 }
 
@@ -96,6 +103,14 @@ void PluginClock::setPos(uint32_t pos)
 void PluginClock::setNumBarsElapsed(uint32_t numBarsElapsed)
 {
 	this->numBarsElapsed = numBarsElapsed;
+}
+
+void PluginClock::calcPeriod()
+{
+	period = static_cast<uint32_t>(sampleRate * (60.0f / (bpm * (divisionValue / 2.0f))));
+	halfWavelength = static_cast<uint32_t>(period / 2.0f);
+	quarterWaveLength = static_cast<uint32_t>(halfWavelength / 2.0f);
+	period = (period <= 0) ? 1 : period;
 }
 
 void PluginClock::closeGate()
@@ -145,10 +160,6 @@ uint32_t PluginClock::getPos() const
 
 void PluginClock::tick()
 {
-	period = static_cast<uint32_t>(sampleRate * (60.0f / (bpm * (divisionValue / 2.0f))));
-	halfWavelength = period / 2.0f;
-	period = (period <= 0) ? 1 : period;
-
 	int beat = static_cast<int>(hostBarBeat);
 
 	if (beatsPerBar <= 1) {
@@ -173,6 +184,7 @@ void PluginClock::tick()
 		case FREE_RUNNING:
 			if ((internalBpm != previousBpm) || (syncMode != previousSyncMode)) {
 				setBpm(internalBpm);
+				previousBpm = internalBpm;
 				previousSyncMode = syncMode;
 			}
 			break;
@@ -199,7 +211,7 @@ void PluginClock::tick()
 		pos = 0;
 	}
 
-	if (pos < halfWavelength/2 && !trigger) {
+	if (pos < quarterWaveLength && !trigger) {
 		gate = true;
 		trigger = true;
 	} else if (pos > halfWavelength && trigger) {

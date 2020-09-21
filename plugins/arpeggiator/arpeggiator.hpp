@@ -8,11 +8,9 @@
 #include "../../common/midiHandler.hpp"
 #include "utils.hpp"
 
-
-#define NUM_VOICES 200
-#define NUM_NOTE_OFF_SLOTS 200
+#define NUM_VOICES 32
+#define NUM_NOTE_OFF_SLOTS 32
 #define PLUGIN_URI "http://moddevices.com/plugins/mod-devel/arpeggiator"
-
 
 #define MIDI_NOTEOFF 0x80
 #define MIDI_NOTEON  0x90
@@ -25,8 +23,6 @@
 #define NUM_OCTAVE_MODES 5
 
 #define NUM_MIDI_CHANNELS 16
-
-//#define MIDI_BUFFER_SIZE 300
 
 #define ONE_OCT_UP_PER_CYCLE 4
 
@@ -110,6 +106,10 @@ private:
 	bool resetPattern = false;
 	bool midiNotesCopied = false;
 	bool panic = false;
+
+	int division = 0;
+	float sampleRate = 48000;
+	double bpm = 0;
 
 	ArpUtils utils;
 	Pattern **arpPattern;
