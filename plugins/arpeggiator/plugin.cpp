@@ -7,7 +7,6 @@ START_NAMESPACE_DISTRHO
 PluginArpeggiator::PluginArpeggiator()
     : Plugin(paramCount, 0, 0)  // paramCount params, 12 program(s), 0 states
 {
-    //loadProgram(0);
 	arpeggiator.transmitHostInfo(0, 4, 1, 1, 120.0);
 	arpeggiator.setSampleRate(static_cast<float>(getSampleRate()));
 	arpeggiator.setDivision(7);
@@ -208,14 +207,6 @@ void PluginArpeggiator::initParameter(uint32_t index, Parameter& parameter)
 	}
 }
 
-/**
-  Set the name of the program @a index.
-  This function will be called once, shortly after the plugin is created.
-*/
-void PluginArpeggiator::initProgramName(uint32_t index, String& programName)
-{
-}
-
 // -----------------------------------------------------------------------
 // Internal data
 
@@ -226,7 +217,8 @@ void PluginArpeggiator::sampleRateChanged(double newSampleRate)
 {
     (void) newSampleRate;
 
-	arpeggiator.setSampleRate(static_cast<float>(newSampleRate)); }
+	arpeggiator.setSampleRate(static_cast<float>(newSampleRate));
+}
 
 /**
   Get the current value of a parameter.
@@ -301,15 +293,6 @@ void PluginArpeggiator::setParameterValue(uint32_t index, float value)
 			arpeggiator.setArpEnabled(static_cast<bool>(value));
 			break;
 	}
-}
-
-/**
-  Load a program.
-  The host may call this function from any context,
-  including realtime processing.
-*/
-void PluginArpeggiator::loadProgram(uint32_t index)
-{
 }
 
 // -----------------------------------------------------------------------
