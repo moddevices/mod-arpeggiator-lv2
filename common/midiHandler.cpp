@@ -2,6 +2,7 @@
 
 MidiHandler::MidiHandler()
 {
+	emptyMidiBuffer();
 }
 
 MidiHandler::~MidiHandler()

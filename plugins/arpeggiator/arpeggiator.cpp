@@ -27,6 +27,7 @@ Arpeggiator::Arpeggiator()
 	for (unsigned i = 0; i < NUM_VOICES; i++) {
 		midiNotes[i][0] = EMPTY_SLOT;
 		midiNotes[i][1] = 0;
+		midiNotesBypassed[i] = EMPTY_SLOT;
 	}
 	for (unsigned i = 0; i < NUM_VOICES; i++) {
 		noteOffBuffer[i][MIDI_NOTE] = EMPTY_SLOT;
