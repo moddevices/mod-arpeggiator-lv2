@@ -5,7 +5,7 @@ START_NAMESPACE_DISTRHO
 // -----------------------------------------------------------------------
 
 PluginArpeggiator::PluginArpeggiator()
-    : Plugin(paramCount, 0, 0)  // paramCount params, 12 program(s), 0 states
+	: Plugin(paramCount, 0, 0)  // paramCount params, 12 program(s), 0 states
 {
 	arpeggiator.transmitHostInfo(0, 4, 1, 1, 120.0);
 	arpeggiator.setSampleRate(static_cast<float>(getSampleRate()));
@@ -211,17 +211,17 @@ void PluginArpeggiator::initParameter(uint32_t index, Parameter& parameter)
 // Internal data
 
 /**
-  Optional callback to inform the plugin about a sample rate change.
+Optional callback to inform the plugin about a sample rate change.
 */
 void PluginArpeggiator::sampleRateChanged(double newSampleRate)
 {
-    (void) newSampleRate;
+	(void) newSampleRate;
 
 	arpeggiator.setSampleRate(static_cast<float>(newSampleRate));
 }
 
 /**
-  Get the current value of a parameter.
+Get the current value of a parameter.
 */
 float PluginArpeggiator::getParameterValue(uint32_t index) const
 {
@@ -253,7 +253,7 @@ float PluginArpeggiator::getParameterValue(uint32_t index) const
 }
 
 /**
-  Change a parameter value.
+Change a parameter value.
 */
 void PluginArpeggiator::setParameterValue(uint32_t index, float value)
 {
@@ -300,11 +300,11 @@ void PluginArpeggiator::setParameterValue(uint32_t index, float value)
 
 void PluginArpeggiator::activate()
 {
-    // plugin is activated
+	// plugin is activated
 }
 
 void PluginArpeggiator::run(const float**, float**, uint32_t n_frames,
-                              const MidiEvent* events, uint32_t eventCount)
+		const MidiEvent* events, uint32_t eventCount)
 {
 	arpeggiator.emptyMidiBuffer();
 
@@ -325,7 +325,7 @@ void PluginArpeggiator::run(const float**, float**, uint32_t n_frames,
 
 Plugin* createPlugin()
 {
-    return new PluginArpeggiator();
+	return new PluginArpeggiator();
 }
 
 // -----------------------------------------------------------------------

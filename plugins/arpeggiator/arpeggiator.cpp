@@ -37,6 +37,19 @@ Arpeggiator::Arpeggiator()
 
 Arpeggiator::~Arpeggiator()
 {
+
+	delete arpPattern[0];
+	delete arpPattern[1];
+	delete arpPattern[2];
+	delete arpPattern[3];
+	delete arpPattern[4];
+	delete arpPattern[5];
+	delete octavePattern[0];
+	delete octavePattern[1];
+	delete octavePattern[2];
+	delete octavePattern[3];
+	delete octavePattern[4];
+
 	delete[] arpPattern;
 	arpPattern = nullptr;
 	delete[] octavePattern;
@@ -240,8 +253,8 @@ struct MidiBuffer Arpeggiator::getMidiBuffer()
 
 void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t n_frames)
 {
-    struct MidiEvent midiEvent;
-    struct MidiEvent midiThroughEvent;
+	struct MidiEvent midiEvent;
+	struct MidiEvent midiThroughEvent;
 
 	if (!latchMode && previousLatch && notesPressed <= 0) {
 		reset();

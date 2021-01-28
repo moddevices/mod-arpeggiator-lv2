@@ -74,9 +74,9 @@ private:
 	int activeNotes = 0;
 	int notePlayed = 0;
 
-    uint8_t midiNotes[NUM_VOICES][2];
-    uint8_t midiNotesBypassed[NUM_VOICES];
-    uint32_t noteOffBuffer[NUM_NOTE_OFF_SLOTS][3];
+	uint8_t midiNotes[NUM_VOICES][2];
+	uint8_t midiNotesBypassed[NUM_VOICES];
+	uint32_t noteOffBuffer[NUM_NOTE_OFF_SLOTS][3];
 
 	int octaveMode = 0;
 	int octaveSpread = 1;

@@ -12,9 +12,9 @@ ArpUtils::~ArpUtils()
 
 void ArpUtils::swap(uint8_t *a, uint8_t *b)
 {
-    int temp = *a;
-    *a = *b;
-    *b = temp;
+	int temp = *a;
+	*a = *b;
+	*b = temp;
 }
 
 //got the code for the quick sort algorithm here https://medium.com/human-in-a-machine-world/quicksort-the-best-sorting-algorithm-6ab461b5a9d0
