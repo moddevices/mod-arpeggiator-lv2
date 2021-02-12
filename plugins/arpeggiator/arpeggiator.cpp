@@ -279,129 +279,133 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 
 		if (arpEnabled) {
 
-			midiNotesCopied = false;
+            midiNotesCopied = false;
 
-			bool voiceFound;
-			bool pitchFound;
-			size_t findFreeVoice;
-			size_t findActivePitch;
+            bool voiceFound;
+            bool pitchFound;
+            size_t findFreeVoice;
+            size_t findActivePitch;
 
 			if (midiNote == 0x7b && events[i].size == 3) {
-				activeNotes = 0;
-				for (unsigned i = 0; i < NUM_VOICES; i++) {
-					midiNotes[i][0] = EMPTY_SLOT;
-					midiNotes[i][1] = 0;
+				if (!latchPlaying) {
+					activeNotes = 0;
+					for (unsigned i = 0; i < NUM_VOICES; i++) {
+						midiNotes[i][0] = EMPTY_SLOT;
+						midiNotes[i][1] = 0;
+					}
+				} else {
+					notesPressed = 0;
 				}
 			}
 
-			uint8_t channel = events[i].data[0] & 0x0F;
+            uint8_t channel = events[i].data[0] & 0x0F;
 
-			switch(status) {
-				case MIDI_NOTEON:
-					if (activeNotes > NUM_VOICES - 1) {
-						reset();
-					} else {
-						if (notesPressed == 0) {
-							if (!latchPlaying) { //TODO check if there needs to be an exception when using sync
-								octavePattern[octaveMode]->reset();
-								clock.reset();
-								notePlayed = 0;
-								firstNote = true;
-							}
-							if (latchMode) {
-								latchPlaying = true;
-								activeNotes = 0;
-								for (unsigned i = 0; i < NUM_VOICES; i++) {
-									midiNotes[i][MIDI_NOTE] = EMPTY_SLOT;
-									midiNotes[i][MIDI_CHANNEL] = 0;
-								}
-							}
-							resetPattern = true;
-						}
+            switch(status) {
+                case MIDI_NOTEON:
+                    if (activeNotes > NUM_VOICES - 1) {
+                        reset();
+                    } else {
+                        if (notesPressed == 0) {
+                            if (!latchPlaying) { //TODO check if there needs to be an exception when using sync
+                                octavePattern[octaveMode]->reset();
+                                clock.reset();
+                                notePlayed = 0;
+                                firstNote = true;
+                            }
+                            if (latchMode) {
+                                latchPlaying = true;
+                                activeNotes = 0;
+                                for (unsigned i = 0; i < NUM_VOICES; i++) {
+                                    midiNotes[i][MIDI_NOTE] = EMPTY_SLOT;
+                                    midiNotes[i][MIDI_CHANNEL] = 0;
+                                }
+                            }
+                            resetPattern = true;
+                        }
 
-						findFreeVoice = 0;
-						findActivePitch = 0;
-						voiceFound = false;
-						pitchFound = false;
+                        findFreeVoice = 0;
+                        findActivePitch = 0;
+                        voiceFound = false;
+                        pitchFound = false;
 
-						while (findActivePitch < NUM_VOICES && !pitchFound)
-						{
-							if (midiNotes[findActivePitch][MIDI_NOTE] == (uint32_t)midiNote) {
-								pitchFound = true;
-							}
-							findActivePitch++;
-						}
+                        while (findActivePitch < NUM_VOICES && !pitchFound)
+                        {
+                            if (midiNotes[findActivePitch][MIDI_NOTE] == (uint32_t)midiNote) {
+                                pitchFound = true;
+                            }
+                            findActivePitch++;
+                        }
 
-						if (!pitchFound) {
-							while (findFreeVoice < NUM_VOICES && !voiceFound)
-							{
-								if (midiNotes[findFreeVoice][MIDI_NOTE] == EMPTY_SLOT) {
-									midiNotes[findFreeVoice][MIDI_NOTE] = midiNote;
-									midiNotes[findFreeVoice][MIDI_CHANNEL] = channel;
-									voiceFound = true;
-								}
-								findFreeVoice++;
-							}
-							notesPressed++;
-							activeNotes++;
-						}
+                        if (!pitchFound) {
+                            while (findFreeVoice < NUM_VOICES && !voiceFound)
+                            {
+                                if (midiNotes[findFreeVoice][MIDI_NOTE] == EMPTY_SLOT) {
+                                    midiNotes[findFreeVoice][MIDI_NOTE] = midiNote;
+                                    midiNotes[findFreeVoice][MIDI_CHANNEL] = channel;
+                                    voiceFound = true;
+                                }
+                                findFreeVoice++;
+                            }
+                            notesPressed++;
+                            activeNotes++;
+                        }
 
-						if (arpMode != ARP_PLAYED)
-							utils.quicksort(midiNotes, 0, NUM_VOICES - 1);
-						if (midiNote < midiNotes[notePlayed - 1][MIDI_NOTE] && notePlayed > 0) {
-							notePlayed++;
-						}
-					}
-					break;
-				case MIDI_NOTEOFF:
-					searchNote = 0;
-					noteToFind = midiNote;
-					if (!latchMode) {
-						latchPlaying = false;
-					} else {
-						latchPlaying = true;
-					}
-					if (!latchPlaying) {
-						notesPressed = (notesPressed > 0) ? notesPressed - 1 : 0;
-						activeNotes = notesPressed;
-					}
-					else {
-						while (searchNote < NUM_VOICES)
-						{
-							if (midiNotes[searchNote][MIDI_NOTE] == noteToFind) {
-								searchNote = NUM_VOICES;
-								notesPressed = (notesPressed > 0) ? notesPressed - 1 : 0;
-							}
-							searchNote++;
-						}
-					}
-					if (!latchMode) {
-						while (searchNote < NUM_VOICES)
-						{
-							if (midiNotes[searchNote][MIDI_NOTE] == noteToFind)
-							{
-								midiNotes[searchNote][MIDI_NOTE] = EMPTY_SLOT;
-								midiNotes[searchNote][MIDI_CHANNEL] = 0;
-								searchNote = NUM_VOICES;
-							}
-							searchNote++;
-						}
-						if (arpMode != ARP_PLAYED)
-							utils.quicksort(midiNotes, 0, NUM_VOICES - 1);
-					}
-					if (activeNotes == 0 && !latchPlaying && !latchMode) {
-						reset();
-					}
-					break;
-				default:
-					midiThroughEvent.frame = events[i].frame;
-					midiThroughEvent.size = events[i].size;
-					for (unsigned d = 0; d < midiThroughEvent.size; d++) {
-						midiThroughEvent.data[d] = events[i].data[d];
-					}
-					midiHandler.appendMidiThroughMessage(midiThroughEvent);
-					break;
-			}
+                        if (arpMode != ARP_PLAYED)
+                            utils.quicksort(midiNotes, 0, NUM_VOICES - 1);
+                        if (midiNote < midiNotes[notePlayed - 1][MIDI_NOTE] && notePlayed > 0) {
+                            notePlayed++;
+                        }
+                    }
+                    break;
+                case MIDI_NOTEOFF:
+                    searchNote = 0;
+                    noteToFind = midiNote;
+                    if (!latchMode) {
+                        latchPlaying = false;
+                    } else {
+                        latchPlaying = true;
+                    }
+                    if (!latchPlaying) {
+                        notesPressed = (notesPressed > 0) ? notesPressed - 1 : 0;
+                        activeNotes = notesPressed;
+                    }
+                    else {
+                        while (searchNote < NUM_VOICES)
+                        {
+                            if (midiNotes[searchNote][MIDI_NOTE] == noteToFind) {
+                                searchNote = NUM_VOICES;
+                                notesPressed = (notesPressed > 0) ? notesPressed - 1 : 0;
+                            }
+                            searchNote++;
+                        }
+                    }
+                    if (!latchMode) {
+                        while (searchNote < NUM_VOICES)
+                        {
+                            if (midiNotes[searchNote][MIDI_NOTE] == noteToFind)
+                            {
+                                midiNotes[searchNote][MIDI_NOTE] = EMPTY_SLOT;
+                                midiNotes[searchNote][MIDI_CHANNEL] = 0;
+                                searchNote = NUM_VOICES;
+                            }
+                            searchNote++;
+                        }
+                        if (arpMode != ARP_PLAYED)
+                            utils.quicksort(midiNotes, 0, NUM_VOICES - 1);
+                    }
+                    if (activeNotes == 0 && !latchPlaying && !latchMode) {
+                        reset();
+                    }
+                    break;
+                default:
+                    midiThroughEvent.frame = events[i].frame;
+                    midiThroughEvent.size = events[i].size;
+                    for (unsigned d = 0; d < midiThroughEvent.size; d++) {
+                        midiThroughEvent.data[d] = events[i].data[d];
+                    }
+                    midiHandler.appendMidiThroughMessage(midiThroughEvent);
+                    break;
+            }
 		} else { //if arpeggiator is off
 
 			if (!midiNotesCopied) {
@@ -507,6 +511,7 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 					}
 
 					resetPattern = false;
+
 					notePlayed = arpPattern[arpMode]->getStep();
 				}
 
@@ -529,7 +534,7 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 			size_t searchedVoices = 0;
 			bool   noteFound = false;
 
-			while (!noteFound && searchedVoices < NUM_VOICES)
+			while (!noteFound && searchedVoices < NUM_VOICES && activeNotes > 0 && arpEnabled)
 			{
 				notePlayed = (notePlayed < 0) ? 0 : notePlayed;
 
@@ -562,8 +567,8 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 						firstNote = false;
 					}
 				}
-				arpPattern[arpMode]->goToNextStep();
-				notePlayed = arpPattern[arpMode]->getStep();
+                arpPattern[arpMode]->goToNextStep();
+                notePlayed = arpPattern[arpMode]->getStep();
 				searchedVoices++;
 			}
 			clock.closeGate();
