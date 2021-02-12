@@ -258,6 +258,16 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 	struct MidiEvent midiEvent;
 	struct MidiEvent midiThroughEvent;
 
+	if (!arpEnabled && !latchMode) {
+
+		reset();
+
+		for (unsigned clear_notes = 0; clear_notes < NUM_VOICES; clear_notes++) {
+			midiNotes[clear_notes][MIDI_NOTE] = EMPTY_SLOT;
+			midiNotes[clear_notes][MIDI_CHANNEL] = 0;
+		}
+	}
+
 	if (!latchMode && previousLatch && notesPressed <= 0) {
 		reset();
 	}
@@ -430,19 +440,17 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 				midiNotesCopied = true;
 			}
 
-			if (!latchMode) {
-
-				reset();
-
-				for (unsigned clear_notes = 0; clear_notes < NUM_VOICES; clear_notes++) {
-					midiNotes[clear_notes][MIDI_NOTE] = EMPTY_SLOT;
-					midiNotes[clear_notes][MIDI_CHANNEL] = 0;
-				}
-
-			} else {
+			if (latchMode) {
 
 				uint8_t noteToFind = midiNote;
 				size_t searchNote = 0;
+
+				if (midiNote == 0x7b && events[i].size == 3) {
+					for (unsigned i = 0; i < NUM_VOICES; i++) {
+						midiNotesBypassed[searchNote] = EMPTY_SLOT;
+					}
+					notesPressed = 0;
+				}
 
 				switch (status)
 				{
