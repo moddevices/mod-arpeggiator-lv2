@@ -1,4 +1,5 @@
 #include "arpeggiator.hpp"
+#include <iostream>
 
 Arpeggiator::Arpeggiator()
 {
@@ -307,10 +308,11 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 					if (activeNotes > NUM_VOICES - 1) {
 						reset();
 					} else {
+						if (first) {
+							firstNote = true;
+							std::cout << "firstNotes = true!!" << std::endl;
+						}
 						if (notesPressed == 0) {
-							if (first) {
-								firstNote = true;
-							}
 							if (!latchPlaying) { //TODO check if there needs to be an exception when using sync
 								octavePattern[octaveMode]->reset();
 								clock.reset();
