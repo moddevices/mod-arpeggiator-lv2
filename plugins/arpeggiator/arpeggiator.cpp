@@ -1,5 +1,4 @@
 #include "arpeggiator.hpp"
-#include <iostream>
 
 Arpeggiator::Arpeggiator()
 {
@@ -299,18 +298,6 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 			size_t findFreeVoice;
 			size_t findActivePitch;
 
-			if (midiNote == 0x7b && events[i].size == 3) {
-				if (!latchPlaying) {
-					activeNotes = 0;
-					for (unsigned i = 0; i < NUM_VOICES; i++) {
-						midiNotes[i][0] = EMPTY_SLOT;
-						midiNotes[i][1] = 0;
-					}
-				} else {
-					notesPressed = 0;
-				}
-			}
-
 			uint8_t channel = events[i].data[0] & 0x0F;
 
 			switch(status) {
@@ -320,7 +307,6 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 					} else {
 						if (first) {
 							firstNote = true;
-							std::cout << "firstNotes = true!!" << std::endl;
 						}
 						if (notesPressed == 0) {
 							if (!latchPlaying) { //TODO check if there needs to be an exception when using sync
@@ -445,13 +431,6 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 				uint8_t noteToFind = midiNote;
 				size_t searchNote = 0;
 
-				if (midiNote == 0x7b && events[i].size == 3) {
-					for (unsigned i = 0; i < NUM_VOICES; i++) {
-						midiNotesBypassed[searchNote] = EMPTY_SLOT;
-					}
-					notesPressed = 0;
-				}
-
 				switch (status)
 				{
 					case MIDI_NOTEOFF:
@@ -466,6 +445,15 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 						}
 						break;
 				}
+			}
+
+			if (midiNote == 0x7b && events[i].size == 3) {
+				for (unsigned i = 0; i < NUM_VOICES; i++) {
+					midiNotesBypassed[i] = EMPTY_SLOT;
+				}
+				notesPressed = 0;
+				activeNotes = 0;
+				reset();
 			}
 			//send MIDI message through
 			midiHandler.appendMidiThroughMessage(events[i]);
