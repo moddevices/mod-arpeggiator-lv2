@@ -307,6 +307,6 @@
         foaf:name """MOD""" ;
     ] ;
 
-    lv2:microVersion 0 ;
+    lv2:microVersion 1 ;
     lv2:minorVersion 1 .
 
