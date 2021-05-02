@@ -9,16 +9,27 @@ PluginClock::PluginClock() :
 	previousPlaying(false),
 	endOfBar(false),
 	init(false),
+	period(0),
+	halfWavelength(0),
+	quarterWaveLength(0),
 	pos(0),
+	beatsPerBar(1.0),
 	bpm(120.0),
 	internalBpm(120.0),
 	previousBpm(0),
 	sampleRate(48000.0),
+	division(1),
+	hostBarBeat(0.0),
+	beatTick(0.0),
+	syncMode(1),
 	previousSyncMode(0),
+	hostTick(0),
+	hostBeat(0),
 	barLength(4),
-	previousBeat(0)
+	numBarsElapsed(0),
+	previousBeat(0),
+	arpMode(0)
 {
-	//TODO everything initialized?
 }
 
 PluginClock::~PluginClock()

@@ -27,6 +27,7 @@ Arpeggiator::Arpeggiator()
 	for (unsigned i = 0; i < NUM_VOICES; i++) {
 		midiNotes[i][0] = EMPTY_SLOT;
 		midiNotes[i][1] = 0;
+		midiNotesBypassed[i] = EMPTY_SLOT;
 	}
 	for (unsigned i = 0; i < NUM_VOICES; i++) {
 		noteOffBuffer[i][MIDI_NOTE] = EMPTY_SLOT;
@@ -256,6 +257,16 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 	struct MidiEvent midiEvent;
 	struct MidiEvent midiThroughEvent;
 
+	if (!arpEnabled && !latchMode) {
+
+		reset();
+
+		for (unsigned clear_notes = 0; clear_notes < NUM_VOICES; clear_notes++) {
+			midiNotes[clear_notes][MIDI_NOTE] = EMPTY_SLOT;
+			midiNotes[clear_notes][MIDI_CHANNEL] = 0;
+		}
+	}
+
 	if (!latchMode && previousLatch && notesPressed <= 0) {
 		reset();
 	}
@@ -274,6 +285,7 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 
 		uint8_t midiNote = events[i].data[1];
 		uint8_t noteToFind;
+		uint8_t foundNote;
 		size_t searchNote;
 
 		if (arpEnabled) {
@@ -282,16 +294,9 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 
 			bool voiceFound;
 			bool pitchFound;
+			bool noteOffFoundInBuffer;
 			size_t findFreeVoice;
 			size_t findActivePitch;
-
-			if (midiNote == 0x7b && events[i].size == 3) {
-				activeNotes = 0;
-				for (unsigned i = 0; i < NUM_VOICES; i++) {
-					midiNotes[i][0] = EMPTY_SLOT;
-					midiNotes[i][1] = 0;
-				}
-			}
 
 			uint8_t channel = events[i].data[0] & 0x0F;
 
@@ -300,12 +305,14 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 					if (activeNotes > NUM_VOICES - 1) {
 						reset();
 					} else {
+						if (first) {
+							firstNote = true;
+						}
 						if (notesPressed == 0) {
 							if (!latchPlaying) { //TODO check if there needs to be an exception when using sync
 								octavePattern[octaveMode]->reset();
 								clock.reset();
 								notePlayed = 0;
-								firstNote = true;
 							}
 							if (latchMode) {
 								latchPlaying = true;
@@ -354,39 +361,48 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 					break;
 				case MIDI_NOTEOFF:
 					searchNote = 0;
+					foundNote = 0;
+					noteOffFoundInBuffer = false;
 					noteToFind = midiNote;
+
 					if (!latchMode) {
 						latchPlaying = false;
 					} else {
 						latchPlaying = true;
 					}
-					if (!latchPlaying) {
+
+					while (searchNote < NUM_VOICES)
+					{
+						if (midiNotes[searchNote][MIDI_NOTE] == noteToFind)
+						{
+							foundNote = searchNote;
+							noteOffFoundInBuffer = true;
+							searchNote = NUM_VOICES;
+						}
+						searchNote++;
+					}
+
+					if (noteOffFoundInBuffer) {
+
 						notesPressed = (notesPressed > 0) ? notesPressed - 1 : 0;
-						activeNotes = notesPressed;
-					}
-					else {
-						while (searchNote < NUM_VOICES)
-						{
-							if (midiNotes[searchNote][MIDI_NOTE] == noteToFind) {
-								searchNote = NUM_VOICES;
-								notesPressed = (notesPressed > 0) ? notesPressed - 1 : 0;
-							}
-							searchNote++;
+
+						if (!latchPlaying) {
+							activeNotes = notesPressed;
 						}
-					}
-					if (!latchMode) {
-						while (searchNote < NUM_VOICES)
-						{
-							if (midiNotes[searchNote][MIDI_NOTE] == noteToFind)
-							{
-								midiNotes[searchNote][MIDI_NOTE] = EMPTY_SLOT;
-								midiNotes[searchNote][MIDI_CHANNEL] = 0;
-								searchNote = NUM_VOICES;
-							}
-							searchNote++;
+
+						if (!latchMode) {
+							midiNotes[foundNote][MIDI_NOTE] = EMPTY_SLOT;
+							midiNotes[foundNote][MIDI_CHANNEL] = 0;
+							if (arpMode != ARP_PLAYED)
+								utils.quicksort(midiNotes, 0, NUM_VOICES - 1);
 						}
-						if (arpMode != ARP_PLAYED)
-							utils.quicksort(midiNotes, 0, NUM_VOICES - 1);
+					} else {
+						midiThroughEvent.frame = events[i].frame;
+						midiThroughEvent.size = events[i].size;
+						for (unsigned d = 0; d < midiThroughEvent.size; d++) {
+							midiThroughEvent.data[d] = events[i].data[d];
+						}
+						midiHandler.appendMidiThroughMessage(midiThroughEvent);
 					}
 					if (activeNotes == 0 && !latchPlaying && !latchMode) {
 						reset();
@@ -410,16 +426,7 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 				midiNotesCopied = true;
 			}
 
-			if (!latchMode) {
-
-				reset();
-
-				for (unsigned clear_notes = 0; clear_notes < NUM_VOICES; clear_notes++) {
-					midiNotes[clear_notes][MIDI_NOTE] = EMPTY_SLOT;
-					midiNotes[clear_notes][MIDI_CHANNEL] = 0;
-				}
-
-			} else {
+			if (latchMode) {
 
 				uint8_t noteToFind = midiNote;
 				size_t searchNote = 0;
@@ -440,6 +447,14 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 				}
 			}
 
+			if (midiNote == 0x7b && events[i].size == 3) {
+				for (unsigned i = 0; i < NUM_VOICES; i++) {
+					midiNotesBypassed[i] = EMPTY_SLOT;
+				}
+				notesPressed = 0;
+				activeNotes = 0;
+				reset();
+			}
 			//send MIDI message through
 			midiHandler.appendMidiThroughMessage(events[i]);
 			first = true;
@@ -506,29 +521,33 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 					}
 
 					resetPattern = false;
+
 					notePlayed = arpPattern[arpMode]->getStep();
 				}
 
 				if (first) {
-
 					for (uint8_t c = 0; c < NUM_MIDI_CHANNELS; c++) {
 						//send note off for everything
-						midiEvent.frame = s;
 						midiEvent.size = 3;
-						midiEvent.data[0] = 0xb0 | c;
-						midiEvent.data[1] = 0x7b;
 						midiEvent.data[2] = 0;
 
-						midiHandler.appendMidiMessage(midiEvent);
-						first = false;
+						for (uint32_t c = 0; c < 0xf; ++c) {
+							midiEvent.frame = s;
+							midiEvent.data[0] = 0xb0 | c;
+							midiEvent.data[1] = 0x40; // sustain pedal
+							midiHandler.appendMidiMessage(midiEvent);
+							midiEvent.data[1] = 0x7b; // all notes off
+							midiHandler.appendMidiMessage(midiEvent);
+						}
 					}
+					first = false;
 				}
 			}
 
 			size_t searchedVoices = 0;
 			bool   noteFound = false;
 
-			while (!noteFound && searchedVoices < NUM_VOICES)
+			while (!noteFound && searchedVoices < NUM_VOICES && activeNotes > 0 && arpEnabled)
 			{
 				notePlayed = (notePlayed < 0) ? 0 : notePlayed;
 

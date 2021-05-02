@@ -95,7 +95,7 @@ private:
 	float barBeat;
 
 	bool pluginEnabled = true;
-	bool first = false;
+	bool first = true;
 	bool arpEnabled = true;
 	bool latchMode = false;
 	bool previousLatch = false;
