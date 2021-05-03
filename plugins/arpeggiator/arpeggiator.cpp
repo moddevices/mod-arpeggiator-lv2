@@ -408,6 +408,9 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 						reset();
 					}
 					break;
+				case MIDI_SYSEX:
+					//Skip sysex messages for now.
+					break;
 				default:
 					midiThroughEvent.frame = events[i].frame;
 					midiThroughEvent.size = events[i].size;

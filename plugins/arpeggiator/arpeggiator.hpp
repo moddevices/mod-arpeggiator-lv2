@@ -14,6 +14,7 @@
 
 #define MIDI_NOTEOFF 0x80
 #define MIDI_NOTEON  0x90
+#define MIDI_SYSEX   0xF0
 
 #define MIDI_NOTE 0
 #define MIDI_CHANNEL 1
