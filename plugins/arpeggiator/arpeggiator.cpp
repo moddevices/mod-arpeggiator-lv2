@@ -254,6 +254,7 @@ struct MidiBuffer Arpeggiator::getMidiBuffer()
 
 void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t n_frames)
 {
+
 	struct MidiEvent midiEvent;
 	struct MidiEvent midiThroughEvent;
 
@@ -408,16 +409,15 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 						reset();
 					}
 					break;
-				case MIDI_SYSEX:
-					//Skip sysex messages for now.
-					break;
 				default:
-					midiThroughEvent.frame = events[i].frame;
-					midiThroughEvent.size = events[i].size;
-					for (unsigned d = 0; d < midiThroughEvent.size; d++) {
-						midiThroughEvent.data[d] = events[i].data[d];
+					if (!(events[i].size > 4 && events[i].dataExt[0] == MIDI_SYSEX)) {
+						midiThroughEvent.frame = events[i].frame;
+						midiThroughEvent.size = events[i].size;
+						for (unsigned d = 0; d < midiThroughEvent.size; d++) {
+							midiThroughEvent.data[d] = events[i].data[d];
+						}
+						midiHandler.appendMidiThroughMessage(midiThroughEvent);
 					}
-					midiHandler.appendMidiThroughMessage(midiThroughEvent);
 					break;
 			}
 		} else { //if arpeggiator is off
@@ -458,8 +458,11 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 				activeNotes = 0;
 				reset();
 			}
-			//send MIDI message through
-			midiHandler.appendMidiThroughMessage(events[i]);
+
+			if (!(events[i].size > 4 && events[i].dataExt[0] == MIDI_SYSEX)) {
+				//send MIDI message through
+				midiHandler.appendMidiThroughMessage(events[i]);
+			}
 			first = true;
 		}
 	}
